@@ -1,0 +1,2 @@
+add_lunch_combo cm_a5ultexx-userdebug
+add_lunch_combo full_a5ultexx-eng

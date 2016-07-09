@@ -1,0 +1,2 @@
+allow vold efs_file:dir { getattr read open ioctl };
+allow vold persist_file:dir { getattr read open ioctl };
