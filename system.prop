@@ -90,9 +90,8 @@ persist.hwc.enable_vds=1
 # Time
 persist.timed.enable=true
 
-# Max background apps
-
 # carliv recovery
 ro.ctr.crypto.passwd="default_password"
-ro.ctr.touch_accuracy=5
-ro.config.max_starting_bg=8
+ro.ctr.touch_accuracy=6
+ro.ctr.forbid_format=/efs,/persist,/firmware,/firmware-modem
+ro.ctr.forbid_mount=/efs,/persist,/firmware,/firmware-modem

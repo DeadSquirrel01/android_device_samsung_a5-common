@@ -173,17 +173,28 @@ BOARD_HAS_NO_SELECT_BUTTON := true
 # Storage
 RECOVERY_SDCARD_ON_DATA := true
 
+# Time Zone data
+PRODUCT_COPY_FILES += \
+bionic/libc/zoneinfo/tzdata:recovery/root/system/usr/share/zoneinfo/tzdata
+
 # Recovery
 RECOVERY_VARIANT := carliv
 TARGET_RECOVERY_FSTAB := device/samsung/a5ultexx/rootdir/fstab.qcom
+BOARD_SUPPRESS_SECURE_ERASE := true
 
 # Carliv Recovery
 ifeq ($(RECOVERY_VARIANT),carliv)
 TARGET_RECOVERY_DENSITY := xhdpi
 VIBRATOR_TIMEOUT_FILE := /sys/devices/virtual/timed_output/vibrator/enable
-BOARD_USE_CUSTOM_RECOVERY_FONT := \"font_16x35.h\"
+TARGET_RECOVERY_LCD_BACKLIGHT_PATH := /sys/class/leds/lcd-backlight/brightness
+BOARD_USE_CUSTOM_RECOVERY_FONT := \"roboto_15x24.h\"
 DEVICE_RESOLUTION := 720x1280
 TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
+BOARD_USE_PROTOCOL_TYPE_B := true
+BOARD_INCLUDE_CRYPTO := true
+# USB OTG and External Sdcard
+TARGET_USES_EXFAT := true
+TARGET_USES_NTFS := true
 # Qcom
 RECOVERY_GRAPHICS_FORCE_USE_LINELENGTH := true
 USE_NEW_ION_HEAP := true
