@@ -1,0 +1,2 @@
+allow audioserver system_file:file execmod;
+

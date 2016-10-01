@@ -1,0 +1,82 @@
+# RIL
+rild.libpath=/system/lib/libsec-ril.so
+rild.libargs=-d /dev/smd0
+ro.telephony.default_network=9
+ro.product_ship=true
+ro.ril.transmitpower=true
+persist.radio.add_power_save=1
+persist.radio.no_wait_for_card=1
+persist.radio.apm_sim_not_pwdn=1
+persist.radio.use_se_table_only=1
+persist.radio.jbims=1
+telephony.lteOnGsmDevice=1
+ro.ril.telephony.mqanelements=6
+ro.telephony.ril.config=simactivation
+
+# Netmgrd
+ro.use_data_netmgrd=false
+persist.data.netmgrd.qos.enable=false
+
+# Display
+ro.sf.lcd_density=320
+debug.composition.type=c2d
+debug.sf.gpu_comp_tiling=1
+debug.mdpcomp.idletime=600
+persist.hwc.mdpcomp.enable=true
+persist.hwc.ptor.enable=true
+ro.opengles.version=196608
+
+# Perf
+ro.vendor.extension_library=libqti-perfd-client.so
+
+# Audio
+tunnel.audio.encode=false
+audio.offload.video=true
+audio.offload.gapless.enabled=true
+av.streaming.offload.enable=true
+audio.offload.buffer.size.kb=64
+audio.offload.pcm.16bit.enable=true
+audio.offload.pcm.24bit.enable=true
+use.voice.path.for.pcm.voip=true
+
+# Fluence
+ro.qc.sdk.audio.fluencetype=none
+persist.audio.fluence.voicecall=true
+persist.audio.fluence.voicerec=false
+persist.audio.fluence.speaker=true
+
+# Media
+mm.enable.smoothstreaming=true
+vidc.enc.narrow.searchrange=1
+media.aac_51_output_enabled=true
+
+# Wi-Fi, Bluetooth
+wifi.interface=wlan0
+ro.qualcomm.bt.hci_transport=smd
+
+# NFC
+ro.nfc.sec_hal=true
+
+# Misc.
+ro.chipname=MSM8916
+ro.warmboot.capability=1
+ro.qualcomm.cabl=0
+
+# GPS
+persist.gps.qmienabled=true
+persist.gps.qc_nlp_in_use=1
+ro.qc.sdk.izat.premium_enabled=0
+ro.qc.sdk.izat.service_mask=0x0
+ro.gps.agps_provider=1
+
+# WFD
+persist.debug.wfd.enable=1
+persist.sys.wfd.virtual=0
+persist.hwc.enable_vds=1
+
+# Time
+persist.timed.enable=true
+
+# Misc.
+ro.sys.fw.dex2oat_thread_count=4
+dalvik.vm.dex2oat-flags=--no-watch-dog

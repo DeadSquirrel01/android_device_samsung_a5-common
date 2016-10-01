@@ -1,0 +1,18 @@
+# Android fstab file.
+# The filesystem that contains the filesystem checker binary (typically /system) cannot
+# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+
+#<src>                                             <mnt_point>    <type>  <mnt_flags and options>                                                                         <fs_mgr_flags>
+/dev/block/bootdevice/by-name/boot        /boot           emmc    defaults    defaults
+/dev/block/bootdevice/by-name/recovery    /recovery       emmc    defaults    defaults
+/dev/block/bootdevice/by-name/system      /system         ext4    ro,barrier=1                                                                                    wait
+/dev/block/bootdevice/by-name/userdata    /data           ext4    noatime,nosuid,nodev,noauto_da_alloc,journal_async_commit,errors=panic                          wait,check,encryptable=footer,length=-16384
+/dev/block/bootdevice/by-name/cache       /cache          ext4    nosuid,nodev,barrier=1                        	  					  wait,check
+/dev/block/bootdevice/by-name/modem       /firmware-modem vfat    ro,shortname=lower,uid=1000,gid=1026,dmask=227,fmask=337,context=u:object_r:firmware_file:s0    wait
+/dev/block/bootdevice/by-name/apnhlos     /firmware       vfat    ro,shortname=lower,uid=1000,gid=1026,dmask=227,fmask=337,context=u:object_r:firmware_file:s0    wait
+/dev/block/bootdevice/by-name/efs         /efs            ext4    noatime,nosuid,nodev,noauto_da_alloc,journal_async_commit,errors=panic                          wait,check
+/dev/block/bootdevice/by-name/persist     /persist        ext4    nosuid,nodev,data=ordered,nodelalloc                                                            wait
+
+# vold managed volumes
+/devices/soc.0/7864900.sdhci/mmc_host*                auto           auto    defaults    voldmanaged=sdcard1:auto,encryptable=userdata
+/devices/platform/msm_hsusb*                          auto           auto    defaults    voldmanaged=usb:auto
