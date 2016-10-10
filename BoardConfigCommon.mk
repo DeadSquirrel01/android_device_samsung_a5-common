@@ -50,7 +50,8 @@ TARGET_KERNEL_CONFIG := cm_a5ultexx_defconfig
 # TARGET_PREBUILT_KERNEL := device/samsung/a5-common/prebuilt/kernel
 
 # Toolchain
-KERNEL_TOOLCHAIN_PREFIX := arm-linux-androideabi-
+KERNEL_TOOLCHAIN := $(ANDROID_BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-eabi-4.8/bin
+KERNEL_TOOLCHAIN_PREFIX := arm-eabi-
 
 # Partition sizes
 TARGET_USERIMAGES_USE_EXT4 := true

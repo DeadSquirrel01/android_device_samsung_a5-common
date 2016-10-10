@@ -268,8 +268,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/twrp.fstab:recovery/root/etc/twrp.fstab
 
 # Prebuilt Kernel
-#PRODUCT_COPY_FILES += \                    # uncomment these 2 lines
-#    $(LOCAL_PATH)/prebuilt/kernel:kernel   # for prebuilt kernel
+#PRODUCT_COPY_FILES += \#                   uncomment these 2 lines
+#    $(LOCAL_PATH)/prebuilt/kernel:kernel#  for prebuilt kernel
 
 # RIL
 PRODUCT_PROPERTY_OVERRIDES += \
