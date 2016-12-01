@@ -1,4 +1,0 @@
-allow init debugfs:dir mounton;
-
-allow init debugfs:file write;
-allow init sdcardd_exec:file getattr;

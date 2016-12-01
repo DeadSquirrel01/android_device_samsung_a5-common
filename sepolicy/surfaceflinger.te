@@ -1,1 +1,0 @@
-allow surfaceflinger debugfs:file { open write };

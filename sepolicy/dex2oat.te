@@ -1,1 +1,0 @@
-allow dex2oat debugfs:file { open write };

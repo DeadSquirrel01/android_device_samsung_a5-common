@@ -1,1 +1,0 @@
-allow bootanim debugfs:file { open write };

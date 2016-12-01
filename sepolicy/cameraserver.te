@@ -1,5 +1,0 @@
-allow cameraserver debugfs:file { open write };
-allow cameraserver camera_socket:sock_file write;
-allow cameraserver camera_prop:property_service set;
-allow cameraserver init:unix_stream_socket connectto;
-allow cameraserver property_socket:sock_file write;
