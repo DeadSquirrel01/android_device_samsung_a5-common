@@ -577,12 +577,6 @@ service rfs_access /system/bin/rfs_access
    user system
    group system net_raw
 
-service config_bluetooth /system/bin/sh /system/etc/init.qcom.bt.sh "onboot"
-    class core
-    user root
-    seclabel u:r:bluetooth_loader:s0
-    oneshot
-
 service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     class late_start
     user bluetooth
@@ -590,9 +584,6 @@ service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     disabled
     seclabel u:r:bluetooth_loader:s0
     oneshot
-
-on property:vold.decrypt=trigger_restart_framework
-    start config_bluetooth
 
 on property:bluetooth.hciattach=true
     start hciattach
