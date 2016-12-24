@@ -2,9 +2,6 @@
 /sys/devices/soc\.0/qpnp-linearcharger-[0-9a-f]+/power_supply/battery/capacity  u:object_r:sysfs_batteryinfo:s0
 
 # Bluetooth
-/system/etc/init\.qcom\.bt\.sh                  u:object_r:bluetooth_loader_exec:s0
-/persist/.bt_nv.bin                             u:object_r:bluetooth_data_file:s0
-/dev/smd3                                       u:object_r:hci_attach_dev:s0
 /efs/bluetooth(/.*)?			        u:object_r:bluetooth_efs_file:s0
 
 /efs/wifi(/.*)?			u:object_r:wifi_efs_file:s0
@@ -14,9 +11,6 @@
 # Camera
 /sys/devices/virtual/camera(/.*)?       u:object_r:sysfs_camera:s0
 /data/cam_socket.*                      u:object_r:camera_socket:s0
-
-# Perfd
-/data/misc/perfd(/.*)?                  u:object_r:mpctl_data_file:s0
 
 # Workaround for input
 /sys/devices/soc.0/i2c.77/i2c-11/11-0020/input/input1/enabled		u:object_r:sysfs_input:s0
