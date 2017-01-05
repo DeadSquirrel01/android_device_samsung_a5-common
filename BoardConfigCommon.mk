@@ -25,6 +25,8 @@
 
 LOCAL_PATH := device/samsung/a5-common
 
+TARGET_SPECIFIC_HEADER_PATH := device/samsung/a5-common/include
+
 # Platform
 TARGET_BOARD_PLATFORM := msm8916
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno306
