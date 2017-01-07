@@ -46,7 +46,7 @@ BOARD_KERNEL_TAGS_OFFSET := 0x01e00000
 BOARD_KERNEL_SEPARATED_DT := true
 BOARD_KERNEL_PAGESIZE := 2048
 TARGET_KERNEL_SOURCE := kernel/samsung/msm8916
-TARGET_KERNEL_CONFIG := cm_a5ultexx_defconfig
+TARGET_KERNEL_CONFIG := lineageos_a5ultexx_defconfig
 # TARGET_PREBUILT_KERNEL := device/samsung/a5-common/prebuilt/kernel
 
 # Toolchain
@@ -70,8 +70,9 @@ BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_QCOM := true
 BLUETOOTH_HCI_USE_MCT := true
 
-# Custom RIL class
+# RIL
 TARGET_RIL_VARIANT := caf
+BOARD_GLOBAL_CFLAGS += -DDISABLE_ASHMEM_TRACKING
 BOARD_RIL_CLASS := ../../../device/samsung/a5-common/ril/
 USE_DEVICE_SPECIFIC_DATASERVICES := true
 
