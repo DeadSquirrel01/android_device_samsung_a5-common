@@ -24,6 +24,7 @@
 -include device/samsung/qcom-common/BoardConfigCommon.mk
 
 LOCAL_PATH := device/samsung/a5-common
+TARGET_SPECIFIC_HEADER_PATH := device/samsung/a5-common/include
 
 # Platform
 TARGET_BOARD_PLATFORM := msm8916
