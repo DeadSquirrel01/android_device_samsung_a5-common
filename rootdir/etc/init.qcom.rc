@@ -77,6 +77,11 @@ on early-boot
     write /sys/kernel/boot_adsp/boot 1
     setprop qcom.audio.init complete
 
+    # Remove symlinks to avoid issues with migrate after nandroid restores
+    # Will be recreated at end of boot
+    rm /data/data/com.android.providers.telephony/databases/telephony.db
+    rm /data/data/com.android.providers.telephony/shared_prefs/preferred-apn.xml
+
 on boot
     # Bluetooth
     chown bluetooth bluetooth /sys/module/bluetooth_power/parameters/power
@@ -359,6 +364,12 @@ on boot
 
     # Start qcamerasvr
     start qcamerasvr
+
+    # Symlink telephony.db and preferred-apn.xml
+    mkdir /data/data/com.android.providers.telephony/databases 0700 radio radio
+    mkdir /data/data/com.android.providers.telephony/shared_prefs 0700 radio radio
+    symlink /data/user_de/0/com.android.providers.telephony/databases/telephony.db /data/data/com.android.providers.telephony/databases/telephony.db
+    symlink /data/user_de/0/com.android.providers.telephony/shared_prefs/preferred-apn.xml /data/data/com.android.providers.telephony/shared_prefs/preferred-apn.xml
 
 # msm specific files that need to be created on /data
 on post-fs-data
@@ -733,10 +744,3 @@ service ril-daemon1 /system/bin/rild -l /system/lib/libsec-ril-dsds.so -c 2
     user root
     disabled
     group radio cache inet misc audio log qcom_diag system drmrpc sdcard_r sdcard_rw shell
-
-
-# Symlink telephony.db and preferred-apn.xml
-    mkdir /data/data/com.android.providers.telephony/databases 0700 radio radio
-    mkdir /data/data/com.android.providers.telephony/shared_prefs 0700 radio radio
-    symlink /data/user_de/0/com.android.providers.telephony/databases/telephony.db /data/data/com.android.providers.telephony/databases/telephony.db
-    symlink /data/user_de/0/com.android.providers.telephony/shared_prefs/preferred-apn.xml /data/data/com.android.providers.telephony/shared_prefs/preferred-apn.xml
