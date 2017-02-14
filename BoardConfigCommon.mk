@@ -92,6 +92,7 @@ BOARD_CHARGER_ENABLE_SUSPEND := true
 
 # Enable QCOM FM feature
 TARGET_QCOM_NO_FM_FIRMWARE := true
+BOARD_HAVE_QCOM_FM := true
 
 # Build our own PowerHAL
 TARGET_POWERHAL_VARIANT := qcom
