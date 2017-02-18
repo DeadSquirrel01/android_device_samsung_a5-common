@@ -101,6 +101,10 @@ PRODUCT_PACKAGES += \
     libmm-qcamera \
     camera.msm8916
 
+PRODUCT_PROPERTY_OVERRIDES += \
+    media.stagefright.legacyencoder=true \
+    media.stagefright.less-secure=true
+
 # GPS HAL
 PRODUCT_PACKAGES += \
     gps.msm8916
