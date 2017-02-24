@@ -97,7 +97,7 @@ PRODUCT_PACKAGES += \
 
 # Camera
 PRODUCT_PACKAGES += \
-    Snap \
+    SnapdragonCamera \
     libmm-qcamera \
     camera.msm8916
 
