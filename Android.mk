@@ -18,7 +18,7 @@ LOCAL_PATH := $(call my-dir)
 SAMSUNG_TARGETS := a5ultexx a5ltexx
 
 ifneq ($(filter $(SAMSUNG_TARGETS),$(TARGET_DEVICE)),)
-include $(call all-makefiles-under,$(LOCAL_PATH))
+include $(filter-out $(call my-dir)/Android.mk,$(shell find $(call my-dir)/ -type f -name Android.mk))
 
 include $(CLEAR_VARS)
 
