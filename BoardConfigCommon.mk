@@ -22,17 +22,22 @@
 
 LOCAL_PATH := device/samsung/a5-common
 
-# includes
--include device/samsung/qcom-common/BoardConfigCommon.mk
-
+# Headers
 TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
 
 # Platform
+BOARD_VENDOR := samsung
 TARGET_BOARD_PLATFORM := msm8916
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno306
 TARGET_BOOTLOADER_BOARD_NAME := MSM8916
+TARGET_NO_BOOTLOADER := true
+BOARD_HAS_DOWNLOAD_MODE := true
 
 # Arch
+TARGET_ARCH := arm
+TARGET_CPU_ABI := armeabi-v7a
+TARGET_CPU_ABI2 := armeabi
+TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
 TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 TARGET_CPU_VARIANT := cortex-a53
@@ -90,6 +95,9 @@ USE_XML_AUDIO_POLICY_CONF := 1
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 BOARD_CHARGER_ENABLE_SUSPEND := true
+
+# Qualcomm support
+BOARD_USES_QCOM_HARDWARE := true
 
 # Enable QCOM FM feature
 TARGET_QCOM_NO_FM_FIRMWARE := true
@@ -171,6 +179,10 @@ TARGET_SYSTEM_PROP := $(LOCAL_PATH)/system.prop
 # Display
 RECOVERY_GRAPHICS_USE_LINELENGTH := true
 TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
+
+# Graphics
+TARGET_USES_C2D_COMPOSITION := true
+TARGET_USES_ION := true
 
 # Keys
 BOARD_CUSTOM_RECOVERY_KEYMAPPING := $(LOCAL_PATH)/recovery/recovery_keys.c

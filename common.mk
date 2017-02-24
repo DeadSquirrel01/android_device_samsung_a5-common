@@ -295,9 +295,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # We have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
-# Common qcom
-$(call inherit-product, device/samsung/qcom-common/qcom-common.mk)
-
 # Dalvik heap config
 $(call inherit-product, frameworks/native/build/phone-xhdpi-2048-dalvik-heap.mk)
 $(call inherit-product, frameworks/native/build/phone-xxhdpi-2048-hwui-memory.mk)
