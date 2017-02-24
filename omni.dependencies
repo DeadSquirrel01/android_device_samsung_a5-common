@@ -1,0 +1,50 @@
+[
+  {
+    "remote": "github",
+    "repository": "DeadSquirrel01/android_kernel_samsung_msm8916",
+    "target_path": "kernel/samsung/msm8916",
+    "revision": "cm-14.1"
+  },
+  {
+    "remote": "github",
+    "repository": "lineageos/android_external_stlport",
+    "target_path": "external/stlport",
+    "revision": "cm-14.1"
+  },
+  {
+    "remote": "github",
+    "repository": "lineageos/android_external_sony_boringssl-compat",
+    "target_path": "external/sony/boringssl-compat",
+    "revision": "cm-14.1"
+  },
+  {
+    "remote": "omnirom",
+    "repository": "android_packages_apps_SnapdragonCamera",
+    "target_path": "packages/apps/SnapdragonCamera",
+    "revision": "android-7.1"
+  },
+  {
+    "remote": "omnirom",
+    "repository": "vendor_qcom_opensource_dataservices",
+    "target_path": "vendor/qcom/opensource/dataservices",
+    "revision": "android-7.1"
+  },
+  {
+    "remote": "omnirom",
+    "repository": "android_device_qcom_caf-sepolicy",
+    "target_path": "device/qcom/sepolicy",
+    "revision": "android-7.1"
+  },
+  {
+    "remote": "omnirom",
+    "repository": "android_hardware_qcom_display-caf-msm8916",
+    "target_path": "hardware/qcom/display-caf-msm8916",
+    "revision": "android-7.1"
+  },
+  {
+    "remote": "omnirom",
+    "repository": "android_hardware_qcom_media-caf-msm8916",
+    "target_path": "hardware/qcom/media-caf-msm8916",
+    "revision": "android-7.1"
+  }
+]
