@@ -20,11 +20,12 @@
 # definition file).
 #
 
-# inherit from qcom-common
+LOCAL_PATH := device/samsung/a5-common
+
+# includes
 -include device/samsung/qcom-common/BoardConfigCommon.mk
 
-LOCAL_PATH := device/samsung/a5-common
-TARGET_SPECIFIC_HEADER_PATH := device/samsung/a5-common/include
+TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
 
 # Platform
 TARGET_BOARD_PLATFORM := msm8916
@@ -40,7 +41,8 @@ TARGET_CPU_CORTEX_A53 := true
 # Kernel
 TARGET_KERNEL_ARCH := arm
 BOARD_DTBTOOL_ARGS := -2
-BOARD_KERNEL_CMDLINE := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=enforcing
+BOARD_CUSTOM_BOOTIMG_MK := $(LOCAL_PATH)/mkbootimg.mk
+BOARD_KERNEL_CMDLINE := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=permissive
 BOARD_KERNEL_BASE := 0x80000000
 BOARD_RAMDISK_OFFSET := 0x02000000
 BOARD_KERNEL_TAGS_OFFSET := 0x01e00000
@@ -48,7 +50,7 @@ BOARD_KERNEL_SEPARATED_DT := true
 BOARD_KERNEL_PAGESIZE := 2048
 TARGET_KERNEL_SOURCE := kernel/samsung/msm8916
 TARGET_KERNEL_CONFIG := lineageos_a5ultexx_defconfig
-# TARGET_PREBUILT_KERNEL := device/samsung/a5-common/prebuilt/kernel
+# TARGET_PREBUILT_KERNEL := $(LOCAL_PATH)/prebuilt/kernel
 
 # Toolchain
 KERNEL_TOOLCHAIN := $(ANDROID_BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-eabi-4.8/bin
@@ -66,15 +68,14 @@ BOARD_USERDATAIMAGE_PARTITION_SIZE := 12775813120
 BOARD_FLASH_BLOCK_SIZE := 131072
 
 # Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/a5-common/bluetooth
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(LOCAL_PATH)/bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_QCOM := true
 BLUETOOTH_HCI_USE_MCT := true
 
 # RIL
-TARGET_RIL_VARIANT := caf
 BOARD_GLOBAL_CFLAGS += -DDISABLE_ASHMEM_TRACKING
-BOARD_RIL_CLASS := ../../../device/samsung/a5-common/ril/
+BOARD_RIL_CLASS := $(LOCAL_PATH)/ril/
 USE_DEVICE_SPECIFIC_DATASERVICES := true
 
 # Fonts
@@ -130,9 +131,6 @@ TARGET_PROVIDES_CAMERA_HAL := true
 USE_DEVICE_SPECIFIC_CAMERA := true
 TARGET_HAS_LEGACY_CAMERA_HAL1 := true
 
-# CMHW
-BOARD_HARDWARE_CLASS += device/samsung/a5-common/cmhw
-
 # Workaround to avoid issues with legacy liblights on QCOM platforms
 TARGET_PROVIDES_LIBLIGHT := true
 
@@ -143,8 +141,12 @@ TARGET_PLATFORM_DEVICE_BASE := /devices/soc.0/
 PROTOBUF_SUPPORTED := true
 HAVE_SYNAPTICS_I2C_RMI4_FW_UPGRADE := true
 
+# Caf
+TARGET_QCOM_MEDIA_VARIANT := caf-msm8916
+TARGET_QCOM_DISPLAY_VARIANT := caf-msm8916
+
 # Media
-TARGET_QCOM_MEDIA_VARIANT := caf
+TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
 
 # Display
 TARGET_CONTINUOUS_SPLASH_ENABLED := true
@@ -161,21 +163,21 @@ BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
 include device/qcom/sepolicy/sepolicy.mk
 
 BOARD_SEPOLICY_DIRS += \
-    device/samsung/a5-common/sepolicy
+    $(LOCAL_PATH)/sepolicy
 
 # Misc.
-TARGET_SYSTEM_PROP := device/samsung/a5-common/system.prop
+TARGET_SYSTEM_PROP := $(LOCAL_PATH)/system.prop
 
 # Display
 RECOVERY_GRAPHICS_USE_LINELENGTH := true
 TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
 
 # Keys
-BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/samsung/a5-common/recovery/recovery_keys.c
+BOARD_CUSTOM_RECOVERY_KEYMAPPING := $(LOCAL_PATH)/recovery/recovery_keys.c
 BOARD_HAS_NO_SELECT_BUTTON := true
 
 # Storage
-TARGET_RECOVERY_FSTAB := device/samsung/a5-common/rootdir/etc/fstab.qcom
+TARGET_RECOVERY_FSTAB := $(LOCAL_PATH)/rootdir/etc/fstab.qcom
 
 RECOVERY_SDCARD_ON_DATA := true
 
@@ -186,7 +188,6 @@ TARGET_RECOVERY_QCOM_RTC_FIX := true
 TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
 
 # TWRP
-ifeq ($(RECOVERY_VARIANT),twrp)
 TW_NO_REBOOT_BOOTLOADER := true
 TW_HAS_DOWNLOAD_MODE := true
 TW_THEME := portrait_hdpi
@@ -195,7 +196,6 @@ TW_MAX_BRIGHTNESS := 255
 TW_DEFAULT_BRIGHTNESS := 100
 TW_MTP_DEVICE := "/dev/usb_mtp_gadget"
 TW_EXCLUDE_SUPERSU := true
-endif
 
 # Carliv Recovery
 ifeq ($(RECOVERY_VARIANT),carliv)
