@@ -61,6 +61,7 @@ PRODUCT_PACKAGES += \
     audiod \
     audio.a2dp.default \
     audio.primary.msm8916 \
+    audio_amplifier.msm8916 \
     audio.r_submix.default \
     audio.usb.default \
     libaudio-resampler \
@@ -250,9 +251,9 @@ PRODUCT_COPY_FILES += \
 
 # Prima opensource driver files
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prima/WCNSS_cfg.dat:system/etc/firmware/wlan/prima/WCNSS_cfg.dat \
     $(LOCAL_PATH)/prima/WCNSS_qcom_cfg.ini:system/etc/wifi/WCNSS_qcom_cfg.ini \
-    $(LOCAL_PATH)/prima/WCNSS_qcom_wlan_nv.bin:system/etc/wifi/WCNSS_qcom_wlan_nv.bin
+    $(LOCAL_PATH)/prima/WCNSS_qcom_wlan_nv.bin:system/etc/wifi/WCNSS_qcom_wlan_nv.bin \
+    $(LOCAL_PATH)/prima/WCNSS_wlan_dictionary.dat:persist/WCNSS_wlan_dictionary.dat
 
 # Wi-Fi
 PRODUCT_COPY_FILES += \
