@@ -121,6 +121,7 @@ BOARD_CHARGER_ENABLE_SUSPEND := true
 
 # Qualcomm support
 BOARD_USES_QCOM_HARDWARE := true
+QCOM_HARDWARE := true
 
 # Enable QCOM FM feature
 TARGET_QCOM_NO_FM_FIRMWARE := true
