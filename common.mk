@@ -102,6 +102,11 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PACKAGES += \
     gps.msm8916
 
+# Locatiom
+PRODUCT_PACKAGES += \
+    com.android.location.provider \
+    com.android.location.provider.xml
+
 # OMX
 PRODUCT_PACKAGES += \
     libextmedia_jni \

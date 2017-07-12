@@ -80,6 +80,10 @@ BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril/
 BOARD_PROVIDES_LIBRIL            := true
 BOARD_MODEM_TYPE                 := xmm7260
 
+# GPS
+TARGET_NO_RPC           := true
+USE_DEVICE_SPECIFIC_GPS := true
+
 # Fonts
 EXTENDED_FONT_FOOTPRINT          := true
 
