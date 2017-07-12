@@ -160,6 +160,11 @@ PRODUCT_PACKAGES += \
     android.hardware.gnss@1.0-impl \
     android.hardware.gnss@1.0-service
 
+# Location
+PRODUCT_PACKAGES += \
+    com.android.location.provider \
+    com.android.location.provider.xml
+
 # USB HAL
 PRODUCT_PACKAGES += \
     android.hardware.usb@1.0-service
