@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2014, The CyanogenMod Project. All rights reserved.
+ * Copyright (c) 2014-2016, The CyanogenMod Project. All rights reserved.
+ * Copyright (c) 2017, The LineageOS Project. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +20,7 @@ package com.android.internal.telephony;
 import static com.android.internal.telephony.RILConstants.*;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.telephony.Rlog;
 import android.os.AsyncResult;
 import android.os.Message;
@@ -26,6 +28,7 @@ import android.os.Parcel;
 import android.os.SystemProperties;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SignalStrength;
+
 import com.android.internal.telephony.cdma.CdmaInformationRecords;
 import com.android.internal.telephony.cdma.CdmaInformationRecords.CdmaSignalInfoRec;
 import com.android.internal.telephony.cdma.SignalToneUtil;
@@ -36,30 +39,91 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * RIL customization for Galaxy A5 (A500)
+ * RIL customization for MSM8916 devices
  *
  * {@hide}
  */
 public class SamsungA5RIL extends RIL {
 
+    private static final int RIL_REQUEST_DIAL_EMERGENCY_CALL = 10001;
     private static final int RIL_UNSOL_ON_SS_LL = 11055;
 
     private boolean mIsGsm = false;
 
+    AudioManager mAudioManager;
+
     public SamsungA5RIL(Context context, int networkMode, int cdmaSubscription) {
-        super(context, networkMode, cdmaSubscription, null);
-        mQANElements = 6;
+        this(context, networkMode, cdmaSubscription, null);
     }
 
     public SamsungA5RIL(Context context, int preferredNetworkType,
             int cdmaSubscription, Integer instanceId) {
         super(context, preferredNetworkType, cdmaSubscription, instanceId);
         mQANElements = 6;
+
+        Rlog.d(RILJ_LOG_TAG, "Setting mAudioManager..");
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+    }
+
+    private void
+    fixNitz(Parcel p) {
+        int dataPosition = p.dataPosition();
+        String nitz = p.readString();
+        long nitzReceiveTime = p.readLong();
+
+        String[] nitzParts = nitz.split(",");
+        if (nitzParts.length >= 4) {
+            // 0=date, 1=time+zone, 2=dst, 3(+)=garbage that confuses ServiceStateTracker
+            nitz = nitzParts[0] + "," + nitzParts[1] + "," + nitzParts[2];
+            p.setDataPosition(dataPosition);
+            p.writeString(nitz);
+            p.writeLong(nitzReceiveTime);
+            // The string is shorter now, drop the extra bytes
+            p.setDataSize(p.dataPosition());
+        }
+    }
+
+    /* Toggles the loud speaker state.
+     * This is a hack to get in-call sound working.
+     */
+    private void toggleSpeaker() {
+        if (mAudioManager.isSpeakerphoneOn()) {
+            Rlog.d(RILJ_LOG_TAG, "Speaker is on. Setting to: off");
+            mAudioManager.setSpeakerphoneOn(false);
+        }
+        else {
+            Rlog.d(RILJ_LOG_TAG, "Speaker is off. Setting to: on");
+            mAudioManager.setSpeakerphoneOn(true);
+        }
+    }
+
+    /*
+     * Samsung-specific modification to enable call audio routing.
+     */
+    private void setRealCall(boolean value) {
+        if (value) {
+            Rlog.d(RILJ_LOG_TAG, "Setting realcall param to: on");
+            mAudioManager.setParameters("realcall=on");
+	    /* toggle speaker twice */
+            toggleSpeaker();
+            toggleSpeaker();
+        }
+        else {
+            Rlog.d(RILJ_LOG_TAG, "Setting realcall param to: off");
+            mAudioManager.setParameters("realcall=off");
+        }
     }
 
     @Override
     public void
     dial(String address, int clirMode, UUSInfo uusInfo, Message result) {
+
+        setRealCall(true);
+
+        if (PhoneNumberUtils.isEmergencyNumber(address)) {
+            dialEmergencyCall(address, clirMode, result);
+            return;
+        }
 
         RILRequest rr = RILRequest.obtain(RIL_REQUEST_DIAL, result);
 
@@ -81,6 +145,54 @@ public class SamsungA5RIL extends RIL {
         if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
 
         send(rr);
+    }
+
+    private void
+    dialEmergencyCall(String address, int clirMode, Message result) {
+        RILRequest rr;
+
+        rr = RILRequest.obtain(RIL_REQUEST_DIAL_EMERGENCY_CALL, result);
+        rr.mParcel.writeString(address);
+        rr.mParcel.writeInt(clirMode);
+        rr.mParcel.writeInt(0);        // CallDetails.call_type
+        rr.mParcel.writeInt(3);        // CallDetails.call_domain
+        rr.mParcel.writeString("");    // CallDetails.getCsvFromExtra
+        rr.mParcel.writeInt(0);        // Unknown
+
+        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
+
+        send(rr);
+    }
+
+
+    @Override
+    public void
+    hangupConnection (int gsmIndex, Message result) {
+           super.hangupConnection(gsmIndex, result);
+           setRealCall(false);
+    }
+
+
+    @Override
+    public void
+    hangupForegroundResumeBackground (Message result) {
+            super.hangupForegroundResumeBackground(result);
+            setRealCall(true);
+    }
+
+
+    @Override
+    public void
+    switchWaitingOrHoldingAndActive (Message result) {
+            super.switchWaitingOrHoldingAndActive(result);
+            setRealCall(true);
+    }
+
+    @Override
+    public void
+    rejectCall (Message result) {
+            super.rejectCall(result);
+            setRealCall(false);
     }
 
     @Override
@@ -252,11 +364,22 @@ public class SamsungA5RIL extends RIL {
         //cdma
         response[2] %= 256;
         response[4] %= 256;
+        // lte
         response[7] &= 0xff;
 
-        return new SignalStrength(response[0], response[1], response[2], response[3], response[4], response[5], response[6], response[7], response[8], 
-response[9], response[10], response[11], true);
-
+	return new SignalStrength(response[0],
+				  response[1],
+				  response[2],
+				  response[3],
+				  response[4],
+				  response[5],
+				  response[6],
+				  response[7],
+				  response[8],
+				  response[9],
+				  response[10],
+				  response[11],
+				  true);
     }
 
     @Override
@@ -293,6 +416,9 @@ response[9], response[10], response[11], true);
         int newResponse = response;
 
         switch(response) {
+            case RIL_UNSOL_NITZ_TIME_RECEIVED:
+                fixNitz(p);
+                break;
             case RIL_UNSOL_ON_SS_LL:
                 newResponse = RIL_UNSOL_ON_SS;
                 break;
@@ -308,6 +434,7 @@ response[9], response[10], response[11], true);
     @Override
     public void
     acceptCall (Message result) {
+        setRealCall(true);
         RILRequest rr
                 = RILRequest.obtain(RIL_REQUEST_ANSWER, result);
 
@@ -392,4 +519,3 @@ response[9], response[10], response[11], true);
         return response;
     }
 }
-
