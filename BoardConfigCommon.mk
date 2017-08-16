@@ -39,6 +39,8 @@ TARGET_CPU_CORTEX_A53       := true
 
 # Kernel
 TARGET_KERNEL_ARCH          := arm
+BOARD_CUSTOM_BOOTIMG        := true
+BOARD_CUSTOM_BOOTIMG_MK     := hardware/samsung/mkbootimg.mk
 BOARD_DTBTOOL_ARGS          := -2
 BOARD_KERNEL_CMDLINE        := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=enforcing
 BOARD_KERNEL_BASE           := 0x80000000
@@ -48,7 +50,6 @@ BOARD_KERNEL_SEPARATED_DT   := true
 BOARD_KERNEL_PAGESIZE       := 2048
 TARGET_KERNEL_SOURCE        := kernel/samsung/msm8916
 TARGET_KERNEL_CONFIG        := lineageos_a5ultexx_defconfig
-# TARGET_PREBUILT_KERNEL    := device/samsung/a5-common/prebuilt/kernel
 
 # Toolchain
 KERNEL_TOOLCHAIN            := $(ANDROID_BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-eabi-4.8/bin
@@ -61,9 +62,9 @@ BOARD_HAS_LARGE_FILESYSTEM          := true
 TARGET_USERIMAGES_USE_EXT4          := true
 TARGET_USERIMAGES_USE_F2FS          := true
 BOARD_BOOTIMAGE_PARTITION_SIZE      := 13631488
-BOARD_RECOVERYIMAGE_PARTITION_SIZE  := 167286400 # Increased from 1572... to 1672... because the kernel is too small for recovery.
-BOARD_SYSTEMIMAGE_PARTITION_SIZE    := 2516582400  # If u want to build cm recovery use prebuilt kernel (uncomment the line) which is compressed with LZMA
-BOARD_PERSISTIMAGE_PARTITION_SIZE   := 8388608    # and reset the size to 157286400
+BOARD_RECOVERYIMAGE_PARTITION_SIZE  := 167286400
+BOARD_SYSTEMIMAGE_PARTITION_SIZE    := 2516582400
+BOARD_PERSISTIMAGE_PARTITION_SIZE   := 8388608
 BOARD_CACHEIMAGE_PARTITION_SIZE     := 209715200
 BOARD_USERDATAIMAGE_PARTITION_SIZE  := 12775813120
 BOARD_FLASH_BLOCK_SIZE              := 131072
