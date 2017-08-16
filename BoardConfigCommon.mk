@@ -83,7 +83,7 @@ BLUETOOTH_HCI_USE_MCT                        := true
 # RIL
 BOARD_GLOBAL_CFLAGS               += -DDISABLE_ASHMEM_TRACKING
 BOARD_RIL_CLASS                   := ../../../$(LOCAL_PATH)/ril/
-USE_DEVICE_SPECIFIC_DATASERVICES  := true
+BOARD_PROVIDES_LIBRIL             := true
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT  := true
