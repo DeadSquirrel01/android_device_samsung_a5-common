@@ -76,10 +76,8 @@ BOARD_HAVE_BLUETOOTH_QCOM                   := true
 BLUETOOTH_HCI_USE_MCT                       := true
 
 # RIL
-TARGET_RIL_VARIANT               := caf
-BOARD_GLOBAL_CFLAGS              += -DDISABLE_ASHMEM_TRACKING
 BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril/
-USE_DEVICE_SPECIFIC_DATASERVICES := true
+BOARD_PROVIDES_LIBRIL            := true
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT          := true
