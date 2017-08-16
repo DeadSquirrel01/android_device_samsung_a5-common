@@ -538,6 +538,11 @@ on post-fs-data
     chmod 0775 /efs/.files/.dm33
     chmod 0775 /efs/.files/.mp301
 
+    # Enable Touch Devices
+    write /sys/class/touch_key/control manual
+    write /sys/class/touch_key/enabled true
+    write /sys/class/touch_key/control auto
+
     setprop vold.post_fs_data_done 1
 
     mkdir /data/diag_logs 0777 system system 5
