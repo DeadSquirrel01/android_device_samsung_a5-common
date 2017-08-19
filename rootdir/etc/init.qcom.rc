@@ -25,7 +25,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import init.qcom.power.rc
+#import init.qcom.power.rc
 import init.qcom.usb.rc
 #import init.target.rc
 
@@ -404,6 +404,12 @@ on post-fs-data
     chown system root /data/.wifiver.info
     chmod 0666 /data/.wifiver.info
 
+    # For SEC NFC
+    chmod 0770 /data/nfc
+    chown nfc nfc /data/nfc
+    chmod 0770 /data/nfc/param
+    chown nfc nfc /data/nfc/param
+
     mkdir /tombstones/modem 0771 system system
     mkdir /tombstones/lpass 0771 system system
     mkdir /tombstones/wcnss 0771 system system
@@ -536,6 +542,11 @@ on post-fs-data
     setprop vold.post_fs_data_done 1
 
     mkdir /data/diag_logs 0777 system system 5
+
+service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
+    class late_start
+    user root
+    oneshot
 
 service netmgrd /system/bin/netmgrd
     class main
