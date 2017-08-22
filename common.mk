@@ -191,6 +191,10 @@ PRODUCT_PACKAGES += \
     Tag \
     com.android.nfc_extras
 
+# Screen Recording
+PRODUCT_PACKAGES += \
+    Screencast
+
 # NFC configuration
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/nfc/libnfc-sec.conf:system/etc/libnfc-brcm.conf \
