@@ -224,6 +224,14 @@
     <!-- Minimum screen brightness allowed by the power manager. -->
     <integer name="config_screenBrightnessDim">3</integer>
 
+    <!-- Enable Doze Service -->
+    <bool name="doze_display_state_supported">true</bool>
+    <string name="config_dozeComponent">com.android.systemui/com.android.systemui.doze.DozeService</string>
+    <bool name="config_dozeAfterScreenOff">true</bool>
+
+    <!-- Screen brightness when dozing. -->
+    <integer name="config_screenBrightnessDoze">22</integer>
+
     <!-- Boolean indicating if current platform supports bluetooth wide band
          speech -->
     <bool name="config_bluetooth_wide_band_speech">false</bool>
@@ -341,11 +349,6 @@
 
     <!-- Disable dreams. Interferes with ambient display. -->
     <bool name="config_dreamsSupported">false</bool>
-
-    <!-- Ambient display. -->
-    <integer name="config_screenBrightnessDoze">30</integer>
-    <string name="config_dozeComponent">com.android.systemui/com.android.systemui.doze.DozeService</string>
-    <bool name="config_dozeAfterScreenOff">true</bool>
 
     <!-- Package name(s) containing location provider support.
          These packages can contain services implementing location providers,
