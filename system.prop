@@ -15,7 +15,6 @@ telephony.lteOnGsmDevice=1
 ro.ril.telephony.mqanelements=6
 ro.telephony.ril.config=simactivation
 ro.telephony.call_ring.multiple=0
-ro.telephony.samsung.realcall=true
 
 # Netmgrd
 ro.use_data_netmgrd=false
