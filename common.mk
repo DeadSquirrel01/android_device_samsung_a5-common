@@ -153,7 +153,16 @@ PRODUCT_PACKAGES += \
     init.qcom.rc \
     init.qcom.usb.rc \
     ueventd.qcom.rc \
-    init.qcom.post_boot.sh
+    init.qcom.post_boot.sh \
+    init.carrier.rc \
+    init.class_main.sh \
+    init.qcom.bt.sh \
+    init.qcom.uicc.sh \
+    init.qcom.early_boot.sh \
+    init.qcom.usb.sh \
+    init.qcom.fm.sh \
+    init.qcom.sh \
+    init.recovery.qcom.rc
 
 # Filesystem
 PRODUCT_PACKAGES += \
