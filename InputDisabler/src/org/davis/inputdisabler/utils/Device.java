@@ -18,20 +18,7 @@ public final class Device {
     /*
      * Enables or disables input devices by writing to sysfs path
      */
-    public static void enableDevices(boolean enable, boolean touch, boolean keys) {
-        // Turn on keys input
-        if(keys) {
-            if(!(enable && read_sysfs(Constants.TK_FORCE_DISABLE) > 0)) {
-                try {
-                    write_sysfs(Constants.TK_PATH, enable);
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to " + (enable ? "enable" : "disable") + " keys");
-                }
-            } else {
-                Log.d(TAG, "Keys are force disabled, not turning on");
-            }
-        }
-
+    public static void enableDevices(boolean enable, boolean touch) {
         // Turn on touch input
         if(touch) {
             try {
@@ -46,15 +33,15 @@ public final class Device {
      * Wrapper methods
      */
     public static void enableDevices(boolean enable) {
-        enableDevices(enable, true, true);
+        enableDevices(enable, true);
     }
 
     public static void enableTouch(boolean enable) {
-        enableDevices(enable, true, false);
+        enableDevices(enable, true);
     }
 
     public static void enableKeys(boolean enable) {
-        enableDevices(enable, false, true);
+        enableDevices(enable, false);
     }
 
     // Writes to sysfs node, returns true if success, false if fail

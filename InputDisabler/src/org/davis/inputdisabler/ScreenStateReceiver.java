@@ -123,7 +123,6 @@ public class ScreenStateReceiver extends BroadcastReceiver implements SensorEven
                 };
                 mDozeDisable.postDelayed(runnable, Constants.DOZING_TIME);
 
-                // Don't enable touch keys when dozing
                 // Perform enable->disable->enable sequence
                 handleScreenOn(false);
                 break;
@@ -183,10 +182,6 @@ public class ScreenStateReceiver extends BroadcastReceiver implements SensorEven
 
     // Handles screen on
     private void handleScreenOn(boolean keys) {
-        // Enable keys
-        if(keys)
-            Device.enableKeys(true);
-
         // Perform enable->disable->enable sequence
         Device.enableTouch(true);
         Device.enableTouch(false);

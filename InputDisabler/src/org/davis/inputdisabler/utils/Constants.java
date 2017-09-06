@@ -10,10 +10,6 @@ public final class Constants {
 
     public static final String TS_PATH = "/sys/class/input/input3/enabled";
 
-    public static final String TK_PATH = "/sys/class/input/input1/enabled";
-
-    public static final String TK_FORCE_DISABLE = "/sys/class/sec/sec_touchkey/force_disable";
-
     // Doze
 
     public static final int DOZING_TIME = 1000 * 5;
