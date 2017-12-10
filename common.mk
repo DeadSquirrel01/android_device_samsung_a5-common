@@ -41,10 +41,6 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.midi.xml:system/etc/permissions/android.software.midi.xml \
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml
 
-# Doze
-PRODUCT_PACKAGES += \
-    SamsungDoze
-
 # Touch issue workaround
 PRODUCT_PACKAGES += \
     InputDisabler
