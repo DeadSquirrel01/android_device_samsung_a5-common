@@ -21,9 +21,10 @@
 #
 
 LOCAL_PATH  := device/samsung/a5-common
+DEVICE_PATH  := device/samsung/a5-common
 
 # Headers
-TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
+TARGET_SPECIFIC_HEADER_PATH := $(DEVICE_PATH)/include
 
 # Platform
 BOARD_VENDOR                  := samsung
@@ -46,7 +47,7 @@ TARGET_CPU_CORTEX_A53   := true
 # Kernel
 TARGET_KERNEL_ARCH         := arm
 BOARD_DTBTOOL_ARGS         := -2
-BOARD_CUSTOM_BOOTIMG_MK    := $(LOCAL_PATH)/mkbootimg.mk
+BOARD_CUSTOM_BOOTIMG_MK    := $(DEVICE_PATH)/mkbootimg.mk
 BOARD_KERNEL_CMDLINE       := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=permissive
 BOARD_KERNEL_BASE          := 0x80000000
 BOARD_RAMDISK_OFFSET       := 0x02000000
@@ -75,14 +76,14 @@ BOARD_USERDATAIMAGE_PARTITION_SIZE   := 12775813120
 BOARD_FLASH_BLOCK_SIZE               := 131072
 
 # Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR  := $(LOCAL_PATH)/bluetooth
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR  := $(DEVICE_PATH)/bluetooth
 BOARD_HAVE_BLUETOOTH                         := true
 BOARD_HAVE_BLUETOOTH_QCOM                    := true
 BLUETOOTH_HCI_USE_MCT                        := true
 
 # RIL
 BOARD_GLOBAL_CFLAGS               += -DDISABLE_ASHMEM_TRACKING
-BOARD_RIL_CLASS                   := ../../../$(LOCAL_PATH)/ril/
+BOARD_RIL_CLASS                   := ../../../$(DEVICE_PATH)/ril/
 BOARD_PROVIDES_LIBRIL             := true
 BOARD_MODEM_TYPE                  := xmm62xx
 
@@ -138,7 +139,7 @@ BOARD_HAVE_QCOM_FM          := true
 
 # Build our own PowerHAL
 TARGET_POWERHAL_VARIANT              := qcom
-TARGET_POWERHAL_SET_INTERACTIVE_EXT  := $(LOCAL_PATH)/power/power_ext.c
+TARGET_POWERHAL_SET_INTERACTIVE_EXT  := $(DEVICE_PATH)/power/power_ext.c
 
 # Touchscreen
 TARGET_TAP_TO_WAKE_NODE  := "/sys/class/sec/sec_touchscreen/wake_gesture"
@@ -206,10 +207,10 @@ BOARD_ANT_WIRELESS_DEVICE  := "vfs-prerelease"
 include device/qcom/sepolicy/sepolicy.mk
 
 BOARD_SEPOLICY_DIRS += \
-    $(LOCAL_PATH)/sepolicy
+    $(DEVICE_PATH)/sepolicy
 
 # Misc.
-TARGET_SYSTEM_PROP  := $(LOCAL_PATH)/system.prop
+TARGET_SYSTEM_PROP  := $(DEVICE_PATH)/system.prop
 
 # Display
 RECOVERY_GRAPHICS_USE_LINELENGTH  := true
@@ -220,11 +221,11 @@ TARGET_USES_C2D_COMPOSITION  := true
 TARGET_USES_ION              := true
 
 # Keys
-BOARD_CUSTOM_RECOVERY_KEYMAPPING  := $(LOCAL_PATH)/recovery/recovery_keys.c
+BOARD_CUSTOM_RECOVERY_KEYMAPPING  := $(DEVICE_PATH)/recovery/recovery_keys.c
 BOARD_HAS_NO_SELECT_BUTTON        := true
 
 # Storage
-TARGET_RECOVERY_FSTAB    := $(LOCAL_PATH)/rootdir/etc/fstab.qcom
+TARGET_RECOVERY_FSTAB    := $(DEVICE_PATH)/rootdir/etc/fstab.qcom
 RECOVERY_SDCARD_ON_DATA  := true
 
 # Misc.
