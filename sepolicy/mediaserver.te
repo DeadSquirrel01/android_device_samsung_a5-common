@@ -2,3 +2,4 @@ allow mediaserver sysfs_camera:dir search;
 allow mediaserver sysfs_camera:file { getattr open read };
 allow mediaserver camera_prop:property_service set;
 allow mediaserver media_rw_data_file:file write;
+allow mediaserver system_data_file:sock_file { open read write };
