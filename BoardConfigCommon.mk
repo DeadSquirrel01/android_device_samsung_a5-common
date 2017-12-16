@@ -139,7 +139,7 @@ BOARD_HAVE_QCOM_FM          := true
 
 # Build our own PowerHAL
 TARGET_POWERHAL_VARIANT              := qcom
-TARGET_POWERHAL_SET_INTERACTIVE_EXT  := $(DEVICE_PATH)/power/power_ext.c
+TARGET_USES_INTERACTION_BOOST        := true
 
 # Touchscreen
 TARGET_TAP_TO_WAKE_NODE  := "/sys/class/sec/sec_touchscreen/wake_gesture"

@@ -48,6 +48,9 @@
 #include "performance.h"
 #include "power-common.h"
 
+/* touchscreen */
+#define TS_CONTROL "/sys/class/sec/sec_touchscreen/ts_control"
+
 static int saved_dcvs_cpu0_slack_max = -1;
 static int saved_dcvs_cpu0_slack_min = -1;
 static int saved_mpdecision_slack_max = -1;
@@ -231,12 +234,19 @@ int __attribute__ ((weak)) set_interactive_override(struct power_module *module,
     return HINT_NONE;
 }
 
+static void a5_power_set_interactive_ext(int on) {
+    ALOGD("%s: %s input devices", __func__, on ? "enabling" : "disabling");
+    sysfs_write(TS_CONTROL, on ? "1" : "0");
+}
+
 void set_interactive(struct power_module *module, int on)
 {
     char governor[80];
     char tmp_str[NODE_MAX];
     struct video_encode_metadata_t video_encode_metadata;
     int rc;
+
+    a5_power_set_interactive_ext(on);
 
     if (set_interactive_override(module, on) == HINT_HANDLED) {
         return;
@@ -436,6 +446,24 @@ void set_interactive(struct power_module *module, int on)
     saved_interactive_mode = !!on;
 }
 
+static void set_device_specific_feature(struct power_module *module __unused,
+    feature_t feature __unused, int state __unused)
+{
+}
+
+static void set_feature(struct power_module *module, feature_t feature, int state)
+{
+#ifdef TAP_TO_WAKE_NODE
+    char tmp_str[NODE_MAX];
+    if (feature == POWER_FEATURE_DOUBLE_TAP_TO_WAKE) {
+        snprintf(tmp_str, NODE_MAX, "%d", state);
+        sysfs_write(TAP_TO_WAKE_NODE, tmp_str);
+        return;
+    }
+#endif
+    set_device_specific_feature(module, feature, state);
+}
+
 struct power_module HAL_MODULE_INFO_SYM = {
     .common = {
         .tag = HARDWARE_MODULE_TAG,
@@ -450,4 +478,5 @@ struct power_module HAL_MODULE_INFO_SYM = {
     .init = power_init,
     .powerHint = power_hint,
     .setInteractive = set_interactive,
+    .setFeature = set_feature,
 };

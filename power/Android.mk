@@ -1,3 +1,4 @@
+ifeq ($(TARGET_POWERHAL_VARIANT),qcom)
 LOCAL_PATH := $(call my-dir)
 
 # HAL module implemenation stored in
@@ -17,6 +18,11 @@ ifeq ($(TARGET_USES_INTERACTION_BOOST),true)
     LOCAL_CFLAGS += -DINTERACTION_BOOST
 endif
 
+ifneq ($(TARGET_TAP_TO_WAKE_NODE),)
+  LOCAL_CFLAGS += -DTAP_TO_WAKE_NODE=\"$(TARGET_TAP_TO_WAKE_NODE)\"
+endif
+
 LOCAL_MODULE := power.$(TARGET_BOARD_PLATFORM)
 LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)
+endif
