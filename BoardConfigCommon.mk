@@ -85,7 +85,7 @@ BLUETOOTH_HCI_USE_MCT                        := true
 BOARD_GLOBAL_CFLAGS               += -DDISABLE_ASHMEM_TRACKING
 BOARD_RIL_CLASS                   := ../../../$(DEVICE_PATH)/ril/
 BOARD_PROVIDES_LIBRIL             := true
-BOARD_MODEM_TYPE                  := xmm62xx
+BOARD_MODEM_TYPE                  := xmm6360
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT  := true
