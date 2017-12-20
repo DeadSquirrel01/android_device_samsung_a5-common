@@ -1,8 +1,0 @@
-allow system_server efs_file:dir search;
-allow system_server sensors_efs_file:file r_file_perms;
-allow system_server sysfs_vibeamp:dir search;
-allow system_server sysfs_vibeamp:file rw_file_perms;
-allow system_server tap2wake_dev:file rw_file_perms;
-allow system_server mpctl_data_file:dir search;
-allow system_server mpctl_data_file:sock_file write;
-r_dir_file(system_server, persist_file) 

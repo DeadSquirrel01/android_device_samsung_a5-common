@@ -32,8 +32,6 @@ TARGET_BOARD_PLATFORM_GPU    := qcom-adreno306
 TARGET_BOOTLOADER_BOARD_NAME := MSM8916
 
 # Arch
-TARGET_GLOBAL_CFLAGS        += -mfpu=neon -mfloat-abi=softfp
-TARGET_GLOBAL_CPPFLAGS      += -mfpu=neon -mfloat-abi=softfp
 TARGET_CPU_VARIANT          := cortex-a53
 TARGET_CPU_CORTEX_A53       := true
 
@@ -42,7 +40,7 @@ TARGET_KERNEL_ARCH          := arm
 BOARD_CUSTOM_BOOTIMG        := true
 BOARD_CUSTOM_BOOTIMG_MK     := hardware/samsung/mkbootimg.mk
 BOARD_DTBTOOL_ARGS          := -2
-BOARD_KERNEL_CMDLINE        := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=enforcing
+BOARD_KERNEL_CMDLINE        := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=permissive
 BOARD_KERNEL_BASE           := 0x80000000
 BOARD_RAMDISK_OFFSET        := 0x02000000
 BOARD_KERNEL_TAGS_OFFSET    := 0x01e00000
@@ -50,6 +48,7 @@ BOARD_KERNEL_SEPARATED_DT   := true
 BOARD_KERNEL_PAGESIZE       := 2048
 TARGET_KERNEL_SOURCE        := kernel/samsung/msm8916
 TARGET_KERNEL_CONFIG        := lineageos_a5ultexx_defconfig
+BOARD_KERNEL_IMAGE_NAME     := zImage
 
 # Toolchain
 KERNEL_TOOLCHAIN            := $(ANDROID_BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-eabi-4.8/bin
@@ -60,7 +59,7 @@ BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE   := ext4
 BOARD_SYSTEMIMAGE_PARTITION_TYPE    := ext4
 BOARD_HAS_LARGE_FILESYSTEM          := true
 TARGET_USERIMAGES_USE_EXT4          := true
-TARGET_USERIMAGES_USE_F2FS          := true
+TARGET_USES_MKE2FS                  := true
 BOARD_BOOTIMAGE_PARTITION_SIZE      := 13631488
 BOARD_RECOVERYIMAGE_PARTITION_SIZE  := 167286400
 BOARD_SYSTEMIMAGE_PARTITION_SIZE    := 2516582400
@@ -77,16 +76,18 @@ BLUETOOTH_HCI_USE_MCT                       := true
 
 # RIL
 BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril/
-BOARD_PROVIDES_LIBRIL            := true
+BOARD_PROVIDES_LIBRIL := true
+BOARD_MODEM_TYPE := xmm62xx
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT          := true
 
 # Audio
-BOARD_USES_ALSA_AUDIO              := true
-AUDIO_FEATURE_ENABLED_KPI_OPTIMIZE := true
-USE_CUSTOM_AUDIO_POLICY            := 1
-USE_XML_AUDIO_POLICY_CONF          := 1
+BOARD_USES_ALSA_AUDIO       := true
+USE_CUSTOM_AUDIO_POLICY     := 1
+BOARD_USES_GENERIC_AUDIO    := true
+TARGET_USES_QCOM_MM_AUDIO   := true
+#USE_XML_AUDIO_POLICY_CONF  := 1
 
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE    := true
@@ -105,16 +106,14 @@ TARGET_TAP_TO_WAKE_NODE := "/sys/class/sec/sec_touchscreen/wake_gesture"
 
 # Wifi
 BOARD_HAS_QCOM_WLAN               := true
-BOARD_HOSTAPD_DRIVER              := NL80211
-BOARD_HOSTAPD_PRIVATE_LIB         := lib_driver_cmd_qcwcn
 BOARD_WLAN_DEVICE                 := qcwcn
-BOARD_WPA_SUPPLICANT_DRIVER       := NL80211
+BOARD_WPA_SUPPLICANT_DRIVER	  := NL80211
 BOARD_WPA_SUPPLICANT_PRIVATE_LIB  := lib_driver_cmd_qcwcn
 TARGET_PROVIDES_WCNSS_QMI         := true
 TARGET_USES_QCOM_WCNSS_QMI        := true
 TARGET_USES_WCNSS_CTRL            := true
-WIFI_DRIVER_MODULE_PATH           := "/system/lib/modules/wlan.ko"
-WIFI_DRIVER_MODULE_NAME           := "wlan"
+WIFI_DRIVER_FW_PATH_STA           := "sta"
+WIFI_DRIVER_FW_PATH_AP            := "ap"
 WPA_SUPPLICANT_VERSION            := VER_0_8_X
 
 # Bluetooth
@@ -133,7 +132,7 @@ USE_DEVICE_SPECIFIC_CAMERA      := true
 TARGET_HAS_LEGACY_CAMERA_HAL1   := true
 
 # CMHW
-BOARD_HARDWARE_CLASS += device/samsung/a5-common/cmhw
+#BOARD_HARDWARE_CLASS += device/samsung/a5-common/cmhw
 
 # Workaround to avoid issues with legacy liblights on QCOM platforms
 TARGET_PROVIDES_LIBLIGHT := true
@@ -146,6 +145,7 @@ PROTOBUF_SUPPORTED                  := true
 HAVE_SYNAPTICS_I2C_RMI4_FW_UPGRADE  := true
 
 # Media
+TARGET_USES_MEDIA_EXTENSIONS := true
 TARGET_QCOM_MEDIA_VARIANT := caf
 
 # Display
@@ -155,12 +155,15 @@ MAX_EGL_CACHE_KEY_SIZE                 := 12*1024
 MAX_EGL_CACHE_SIZE                     := 2048*1024
 OVERRIDE_RS_DRIVER                     := libRSDriver_adreno.so
 TARGET_FORCE_HWC_FOR_VIRTUAL_DISPLAYS  := true
+TARGET_USES_GRALLOC1                   := true
+TARGET_USES_HWC2                       := true
+TARGET_USES_NEW_ION_API                :=true
 
 # ANT+
 BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
 
 # SELinux
-include device/qcom/sepolicy/sepolicy.mk
+include device/lineage/sepolicy/qcom/sepolicy.mk
 
 BOARD_SEPOLICY_DIRS += \
     device/samsung/a5-common/sepolicy

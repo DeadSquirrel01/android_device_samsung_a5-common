@@ -21,7 +21,7 @@ bin/hci_qcomm_init
 vendor/lib/libbtnv.so
 
 # Sensors
-lib/hw/sensors.msm8916.so
+lib/hw/sensors.msm8916.so:lib/hw/sensors.vendor.msm8916.so
 lib/libalgobsx.so
 
 # NFC

@@ -21,12 +21,12 @@ persist.data.netmgrd.qos.enable=false
 
 # Display
 ro.sf.lcd_density=320
-debug.composition.type=c2d
 debug.sf.gpu_comp_tiling=1
 debug.mdpcomp.idletime=600
 persist.hwc.mdpcomp.enable=true
 persist.hwc.ptor.enable=true
 ro.opengles.version=196608
+debug.hwui.use_buffer_age=false
 
 # Perf
 ro.vendor.extension_library=libqti-perfd-client.so
@@ -93,5 +93,5 @@ persist.timed.enable=true
 ro.sys.fw.dex2oat_thread_count=4
 dalvik.vm.dex2oat-flags=--no-watch-dog
 
-# Sdcardfs
-ro.sys.sdcardfs=true
+# OMX
+persist.media.treble_omx=false
