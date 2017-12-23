@@ -122,7 +122,6 @@ static char *camera_fixup_getparams(int id, const char *settings)
 #endif
 
     // fix params here
-    params.set(android::CameraParameters::KEY_SUPPORTED_ISO_MODES, iso_values[id]);
     params.set(android::CameraParameters::KEY_EXPOSURE_COMPENSATION_STEP, "0.5");
     params.set(android::CameraParameters::KEY_MIN_EXPOSURE_COMPENSATION, "-4");
     params.set(android::CameraParameters::KEY_MAX_EXPOSURE_COMPENSATION, "4");
@@ -167,30 +166,14 @@ static char *camera_fixup_setparams(struct camera_device *device, const char *se
     bool isVideo = recordingHint && !strcmp(recordingHint, "true");
 
     if (isVideo) {
-        params.set(android::CameraParameters::KEY_ZSL, android::CameraParameters::ZSL_OFF);
+        params.set("zsl", "off");
     } else {
-        params.set(android::CameraParameters::KEY_ZSL, android::CameraParameters::ZSL_ON);
+        params.set("zsl", "on");
     }
 
     if (needYUV420preview(params)) {
         ALOGV("%s: switching preview format to yuv420p", __FUNCTION__);
         params.set("preview-format", "yuv420p");
-    }
-
-    // fix params here
-    // No need to fix-up ISO_HJR, it is the same for userspace and the camera lib
-    if (params.get("iso")) {
-        const char *isoMode = params.get(android::CameraParameters::KEY_ISO_MODE);
-        if (strcmp(isoMode, "ISO100") == 0)
-            params.set(android::CameraParameters::KEY_ISO_MODE, "100");
-        else if (strcmp(isoMode, "ISO200") == 0)
-            params.set(android::CameraParameters::KEY_ISO_MODE, "200");
-        else if (strcmp(isoMode, "ISO400") == 0)
-            params.set(android::CameraParameters::KEY_ISO_MODE, "400");
-        else if (strcmp(isoMode, "ISO800") == 0)
-            params.set(android::CameraParameters::KEY_ISO_MODE, "800");
-        else if (strcmp(isoMode, "ISO1600") == 0)
-            params.set(android::CameraParameters::KEY_ISO_MODE, "1600");
     }
 
     android::String8 strParams = params.flatten();

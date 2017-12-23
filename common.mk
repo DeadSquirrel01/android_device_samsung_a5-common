@@ -53,14 +53,16 @@ PRODUCT_PACKAGES += \
 
 # Radio
 PRODUCT_PACKAGES += \
-    libril \
-    libsecril-client \
-    libsecril-client-sap \
-    libreference-ril \
-    rild \
-    libprotobuf-cpp-full \
-    android.hardware.radio@1.0 \
-    android.hardware.radio.deprecated@1.0 \
+    curl \
+    libbson \
+    libcurl \
+    tcpdump \
+    libkeyutils \
+    sockev \
+    librmnetctl \
+    rmnetcli \
+    libcnefeatureconfig \
+    macloader \
     libsec-ril_shim
 
 # Audio
@@ -134,7 +136,8 @@ PRODUCT_PACKAGES += \
     Camera2 \
     libmm-qcamera \
     camera.msm8916 \
-    android.hardware.camera.provider@2.4-impl
+    android.hardware.camera.provider@2.4-impl-legacy \
+    camera.device@1.0-impl-legacy
 
 PRODUCT_PROPERTY_OVERRIDES += \
     media.stagefright.legacyencoder=true \
@@ -368,8 +371,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/twrp.fstab:recovery/root/etc/twrp.fstab
 
 # RIL
-#PRODUCT_PROPERTY_OVERRIDES += \
-#    ro.telephony.ril_class=SamsungA5RIL
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.telephony.ril_class=SamsungA5RIL
 
 # HIDL
 PRODUCT_COPY_FILES += \

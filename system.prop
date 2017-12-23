@@ -3,6 +3,7 @@ rild.libpath=/system/lib/libsec-ril.so
 rild.libargs=-d /dev/smd0
 persist.radio.rat_on=combine
 ril.subscription.types=NV,RUIM
+ro.ril.telephony.nstrings=7
 ro.telephony.default_network=9
 ro.product_ship=true
 ro.ril.transmitpower=true
@@ -95,3 +96,4 @@ dalvik.vm.dex2oat-flags=--no-watch-dog
 
 # OMX
 persist.media.treble_omx=false
+camera.disable_treble=true
