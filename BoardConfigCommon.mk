@@ -189,6 +189,9 @@ TARGET_RECOVERY_QCOM_RTC_FIX           := true
 # Text Relocations
 TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
 
+# Ignore Dependencies
+ALLOW_MISSING_DEPENDENCIES := true
+
 # TWRP
 ifeq ($(RECOVERY_VARIANT),twrp)
 TW_NO_REBOOT_BOOTLOADER := true

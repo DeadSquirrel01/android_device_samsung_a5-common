@@ -1,11 +1,13 @@
 ifeq ($(TARGET_PROVIDES_CAMERA_HAL),true)
 
 LOCAL_PATH := $(call my-dir)
+
 include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
     system/media/camera/include \
     system/core/base/include \
+    frameworks/native/libs/nativebase/include \
     frameworks/native/libs/arect/include
 
 LOCAL_SRC_FILES := \

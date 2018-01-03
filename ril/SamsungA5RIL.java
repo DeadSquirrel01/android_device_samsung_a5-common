@@ -38,7 +38,7 @@ import com.android.internal.telephony.uicc.IccUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import android.hardware.radio.V1_0.IRadio;
+import android.hardware.radio.V1_1.IRadio;
 import android.hardware.radio.V1_0.Dial;
 import android.hardware.radio.V1_0.UusInfo;
 import android.os.RemoteException;

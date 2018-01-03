@@ -43,9 +43,13 @@ PRODUCT_COPY_FILES += \
 #PRODUCT_PACKAGES += \
 #    SamsungDoze
 
+# Depmod
+PRODUCT_PACKAGES += \
+    depmod
+
 # DT
 PRODUCT_PACKAGES += \
-     dtbToolLineage
+    dtbToolLineage
 
 # Touch issue workaround
 PRODUCT_PACKAGES += \
