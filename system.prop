@@ -94,5 +94,9 @@ persist.timed.enable=true
 ro.sys.fw.dex2oat_thread_count=4
 dalvik.vm.dex2oat-flags=--no-watch-dog
 
-# OMX
+# Treble Misc.
 persist.media.treble_omx=false
+camera.disable_treble=true
+
+# SDcardFS
+ro.sys.sdcardfs=false
