@@ -158,11 +158,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.usb@1.0-service
 
-# Radio HAL
-#PRODUCT_PACKAGES += \
-#    android.hardware.radio.deprecated@1.0-impl \
-#    android.hardware.radio@1.0-impl
-
 # OMX
 PRODUCT_PACKAGES += \
     libextmedia_jni \
@@ -196,16 +191,6 @@ PRODUCT_PACKAGES += \
     ebtables \
     ethertypes \
     libebtc
-
-# Ramdisk
-#PRODUCT_PACKAGES += \
-#    fstab.qcom \
-#    init.qcom.rc \
-#    init.qcom.mem.sh \
-#    init.qcom.power.rc \
-#    init.qcom.ssr.rc \
-#    init.recovery.qcom.rc \
-#    ueventd.qcom.rc
 
 PRODUCT_PACKAGES += \
     init.qcom.bt.sh
@@ -340,11 +325,7 @@ PRODUCT_COPY_FILES += \
 # Wi-Fi
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
-    $(LOCAL_PATH)/configs/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
-
-# Sensors
-#PRODUCT_COPY_FILES += \
-#    $(LOCAL_PATH)/sensors/hals.conf:system/vendor/etc/sensors/hals.conf
+    $(LOCAL_PATH)/configs/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf
 
 # Bluetooth
 PRODUCT_PACKAGES += \
