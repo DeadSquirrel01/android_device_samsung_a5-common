@@ -1,20 +1,18 @@
-From d6acdf681b52ef55b18419fc783ab4f45fbf8acc Mon Sep 17 00:00:00 2001
+From b30e80c9d89fecf0efef68d9450aefd6c4c0256a Mon Sep 17 00:00:00 2001
 From: DeadSquirrel01 <m.marcaccini01@gmail.com>
-Date: Wed, 3 Jan 2018 05:52:12 +0000
-Subject: [PATCH] Revert "Camera: Remove dead legacy code"
+Date: Thu, 4 Jan 2018 16:38:22 +0000
+Subject: [PATCH] Revert: Camera Remove dead legacy code
 
-This reverts commit 31abd0ae17fc7e7f78b514f260d7c8a7b12dca00.
-
-Change-Id: Ia2ac2d2d408c697bd9d8c41e76814d19f1f7a545
+Change-Id: I33a2d14a30a2989c376c020eb8748ecd4d256d3b
 ---
  .../device1/CameraHardwareInterface.cpp            | 263 +++++++++++++
  .../device1/CameraHardwareInterface.h              |  44 +++
- .../libcameraservice/device3/Camera3Device.cpp     | 435 ++++++++++-----------
+ .../libcameraservice/device3/Camera3Device.cpp     | 437 ++++++++++-----------
  .../libcameraservice/device3/Camera3Device.h       |   1 +
- 4 files changed, 517 insertions(+), 226 deletions(-)
+ 4 files changed, 518 insertions(+), 227 deletions(-)
 
 diff --git a/services/camera/libcameraservice/device1/CameraHardwareInterface.cpp b/services/camera/libcameraservice/device1/CameraHardwareInterface.cpp
-index 522d521b5..f6fcb87b6 100644
+index 82cb0f6b4..d1e5c83a1 100644
 --- a/services/camera/libcameraservice/device1/CameraHardwareInterface.cpp
 +++ b/services/camera/libcameraservice/device1/CameraHardwareInterface.cpp
 @@ -29,6 +29,11 @@ using hardware::hidl_handle;
@@ -29,7 +27,7 @@ index 522d521b5..f6fcb87b6 100644
      if (mHidlDevice != nullptr) {
          mHidlDevice->close();
          mHidlDevice.clear();
-@@ -37,6 +42,12 @@ CameraHardwareInterface::~CameraHardwareInterface()
+@@ -68,6 +73,12 @@ status_t CameraHardwareInterface::initialize(CameraModule *module)
  }
  
  status_t CameraHardwareInterface::initialize(sp<CameraProviderManager> manager) {
@@ -42,7 +40,7 @@ index 522d521b5..f6fcb87b6 100644
      ALOGI("Opening camera %s", mName.string());
  
      status_t ret = manager->openSession(mName.string(), this, &mHidlDevice);
-@@ -454,6 +465,23 @@ status_t CameraHardwareInterface::setPreviewWindow(const sp<ANativeWindow>& buf)
+@@ -485,6 +496,23 @@ status_t CameraHardwareInterface::setPreviewWindow(const sp<ANativeWindow>& buf)
          }
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->setPreviewWindow(buf.get() ? this : nullptr));
@@ -66,7 +64,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -471,6 +499,15 @@ void CameraHardwareInterface::setCallbacks(notify_callback notify_cb,
+@@ -502,6 +530,15 @@ void CameraHardwareInterface::setCallbacks(notify_callback notify_cb,
      mCbUser = user;
  
      ALOGV("%s(%s)", __FUNCTION__, mName.string());
@@ -82,7 +80,7 @@ index 522d521b5..f6fcb87b6 100644
  }
  
  void CameraHardwareInterface::enableMsgType(int32_t msgType)
-@@ -478,6 +515,8 @@ void CameraHardwareInterface::enableMsgType(int32_t msgType)
+@@ -509,6 +546,8 @@ void CameraHardwareInterface::enableMsgType(int32_t msgType)
      ALOGV("%s(%s)", __FUNCTION__, mName.string());
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          mHidlDevice->enableMsgType(msgType);
@@ -91,7 +89,7 @@ index 522d521b5..f6fcb87b6 100644
      }
  }
  
-@@ -486,6 +525,8 @@ void CameraHardwareInterface::disableMsgType(int32_t msgType)
+@@ -517,6 +556,8 @@ void CameraHardwareInterface::disableMsgType(int32_t msgType)
      ALOGV("%s(%s)", __FUNCTION__, mName.string());
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          mHidlDevice->disableMsgType(msgType);
@@ -100,7 +98,7 @@ index 522d521b5..f6fcb87b6 100644
      }
  }
  
-@@ -494,6 +535,8 @@ int CameraHardwareInterface::msgTypeEnabled(int32_t msgType)
+@@ -525,6 +566,8 @@ int CameraHardwareInterface::msgTypeEnabled(int32_t msgType)
      ALOGV("%s(%s)", __FUNCTION__, mName.string());
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return mHidlDevice->msgTypeEnabled(msgType);
@@ -109,7 +107,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return false;
  }
-@@ -504,6 +547,8 @@ status_t CameraHardwareInterface::startPreview()
+@@ -535,6 +578,8 @@ status_t CameraHardwareInterface::startPreview()
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->startPreview());
@@ -118,7 +116,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -513,6 +558,8 @@ void CameraHardwareInterface::stopPreview()
+@@ -544,6 +589,8 @@ void CameraHardwareInterface::stopPreview()
      ALOGV("%s(%s)", __FUNCTION__, mName.string());
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          mHidlDevice->stopPreview();
@@ -127,7 +125,7 @@ index 522d521b5..f6fcb87b6 100644
      }
  }
  
-@@ -521,6 +568,8 @@ int CameraHardwareInterface::previewEnabled()
+@@ -552,6 +599,8 @@ int CameraHardwareInterface::previewEnabled()
      ALOGV("%s(%s)", __FUNCTION__, mName.string());
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return mHidlDevice->previewEnabled();
@@ -136,7 +134,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return false;
  }
-@@ -531,6 +580,8 @@ status_t CameraHardwareInterface::storeMetaDataInBuffers(int enable)
+@@ -562,6 +611,8 @@ status_t CameraHardwareInterface::storeMetaDataInBuffers(int enable)
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->storeMetaDataInBuffers(enable));
@@ -145,7 +143,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return enable ? INVALID_OPERATION: OK;
  }
-@@ -541,6 +592,8 @@ status_t CameraHardwareInterface::startRecording()
+@@ -572,6 +623,8 @@ status_t CameraHardwareInterface::startRecording()
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->startRecording());
@@ -154,7 +152,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -553,6 +606,8 @@ void CameraHardwareInterface::stopRecording()
+@@ -584,6 +637,8 @@ void CameraHardwareInterface::stopRecording()
      ALOGV("%s(%s)", __FUNCTION__, mName.string());
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          mHidlDevice->stopRecording();
@@ -163,7 +161,7 @@ index 522d521b5..f6fcb87b6 100644
      }
  }
  
-@@ -564,6 +619,8 @@ int CameraHardwareInterface::recordingEnabled()
+@@ -595,6 +650,8 @@ int CameraHardwareInterface::recordingEnabled()
      ALOGV("%s(%s)", __FUNCTION__, mName.string());
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return mHidlDevice->recordingEnabled();
@@ -172,7 +170,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return false;
  }
-@@ -588,6 +645,9 @@ void CameraHardwareInterface::releaseRecordingFrame(const sp<IMemory>& mem)
+@@ -619,6 +676,9 @@ void CameraHardwareInterface::releaseRecordingFrame(const sp<IMemory>& mem)
          } else {
              mHidlDevice->releaseRecordingFrame(heapId, bufferIndex);
          }
@@ -182,7 +180,7 @@ index 522d521b5..f6fcb87b6 100644
      }
  }
  
-@@ -614,6 +674,9 @@ void CameraHardwareInterface::releaseRecordingFrameBatch(const std::vector<sp<IM
+@@ -645,6 +705,9 @@ void CameraHardwareInterface::releaseRecordingFrameBatch(const std::vector<sp<IM
                  ALOGE("%s only supports VideoNativeHandleMetadata mode", __FUNCTION__);
                  return;
              }
@@ -192,7 +190,7 @@ index 522d521b5..f6fcb87b6 100644
          }
      }
  
-@@ -632,6 +695,8 @@ status_t CameraHardwareInterface::autoFocus()
+@@ -663,6 +726,8 @@ status_t CameraHardwareInterface::autoFocus()
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->autoFocus());
@@ -201,7 +199,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -642,6 +707,8 @@ status_t CameraHardwareInterface::cancelAutoFocus()
+@@ -673,6 +738,8 @@ status_t CameraHardwareInterface::cancelAutoFocus()
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->cancelAutoFocus());
@@ -210,7 +208,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -652,6 +719,8 @@ status_t CameraHardwareInterface::takePicture()
+@@ -683,6 +750,8 @@ status_t CameraHardwareInterface::takePicture()
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->takePicture());
@@ -219,7 +217,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -662,6 +731,8 @@ status_t CameraHardwareInterface::cancelPicture()
+@@ -693,6 +762,8 @@ status_t CameraHardwareInterface::cancelPicture()
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->cancelPicture());
@@ -228,7 +226,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -672,6 +743,8 @@ status_t CameraHardwareInterface::setParameters(const CameraParameters &params)
+@@ -703,6 +774,8 @@ status_t CameraHardwareInterface::setParameters(const CameraParameters &params)
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->setParameters(params.flatten().string()));
@@ -237,7 +235,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -688,6 +761,14 @@ CameraParameters CameraHardwareInterface::getParameters() const
+@@ -719,6 +792,14 @@ CameraParameters CameraHardwareInterface::getParameters() const
                  });
          String8 tmp(outParam.c_str());
          parms.unflatten(tmp);
@@ -252,7 +250,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return parms;
  }
-@@ -698,6 +779,8 @@ status_t CameraHardwareInterface::sendCommand(int32_t cmd, int32_t arg1, int32_t
+@@ -729,6 +810,8 @@ status_t CameraHardwareInterface::sendCommand(int32_t cmd, int32_t arg1, int32_t
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          return CameraProviderManager::mapToStatusT(
                  mHidlDevice->sendCommand((CommandType) cmd, arg1, arg2));
@@ -261,7 +259,7 @@ index 522d521b5..f6fcb87b6 100644
      }
      return INVALID_OPERATION;
  }
-@@ -711,6 +794,8 @@ void CameraHardwareInterface::release() {
+@@ -742,6 +825,8 @@ void CameraHardwareInterface::release() {
      if (CC_LIKELY(mHidlDevice != nullptr)) {
          mHidlDevice->close();
          mHidlDevice.clear();
@@ -270,7 +268,7 @@ index 522d521b5..f6fcb87b6 100644
      }
  }
  
-@@ -726,10 +811,15 @@ status_t CameraHardwareInterface::dump(int fd, const Vector<String16>& /*args*/)
+@@ -757,10 +842,15 @@ status_t CameraHardwareInterface::dump(int fd, const Vector<String16>& /*args*/)
          Status s = mHidlDevice->dumpState(handle);
          native_handle_delete(handle);
          return CameraProviderManager::mapToStatusT(s);
@@ -286,7 +284,7 @@ index 522d521b5..f6fcb87b6 100644
  void CameraHardwareInterface::sNotifyCb(int32_t msg_type, int32_t ext1,
                          int32_t ext2, void *user)
  {
-@@ -799,4 +889,177 @@ void CameraHardwareInterface::sPutMemory(camera_memory_t *data)
+@@ -830,4 +920,177 @@ void CameraHardwareInterface::sPutMemory(camera_memory_t *data)
      mem->decStrong(mem);
  }
  
@@ -465,10 +463,10 @@ index 522d521b5..f6fcb87b6 100644
 +
  }; // namespace android
 diff --git a/services/camera/libcameraservice/device1/CameraHardwareInterface.h b/services/camera/libcameraservice/device1/CameraHardwareInterface.h
-index e519b04cd..96e1783da 100644
+index a9bfd9b58..7a0a91062 100644
 --- a/services/camera/libcameraservice/device1/CameraHardwareInterface.h
 +++ b/services/camera/libcameraservice/device1/CameraHardwareInterface.h
-@@ -90,6 +90,7 @@ class CameraHardwareInterface :
+@@ -91,6 +91,7 @@ class CameraHardwareInterface :
  
  public:
      explicit CameraHardwareInterface(const char *name):
@@ -476,7 +474,7 @@ index e519b04cd..96e1783da 100644
              mHidlDevice(nullptr),
              mName(name),
              mPreviewScalingMode(NOT_SET),
-@@ -298,6 +299,7 @@ public:
+@@ -300,6 +301,7 @@ public:
      status_t dump(int fd, const Vector<String16>& /*args*/) const;
  
  private:
@@ -484,7 +482,7 @@ index e519b04cd..96e1783da 100644
      sp<hardware::camera::device::V1_0::ICameraDevice> mHidlDevice;
      String8 mName;
  
-@@ -367,6 +369,41 @@ private:
+@@ -369,6 +371,41 @@ private:
  
      static void sPutMemory(camera_memory_t *data);
  
@@ -526,7 +524,7 @@ index e519b04cd..96e1783da 100644
      std::pair<bool, uint64_t> getBufferId(ANativeWindowBuffer* anb);
      void cleanupCirculatingBuffers();
  
-@@ -422,6 +459,13 @@ private:
+@@ -424,6 +461,13 @@ private:
  
      sp<ANativeWindow>        mPreviewWindow;
  
@@ -541,10 +539,19 @@ index e519b04cd..96e1783da 100644
      data_callback                 mDataCb;
      data_callback_timestamp       mDataCbTimestamp;
 diff --git a/services/camera/libcameraservice/device3/Camera3Device.cpp b/services/camera/libcameraservice/device3/Camera3Device.cpp
-index ced1d3af4..e1c75360a 100644
+index 11536fb73..3a106b07f 100644
 --- a/services/camera/libcameraservice/device3/Camera3Device.cpp
 +++ b/services/camera/libcameraservice/device3/Camera3Device.cpp
-@@ -3063,20 +3063,24 @@ void Camera3Device::monitorMetadata(TagMonitor::eventSource source,
+@@ -164,7 +164,7 @@ status_t Camera3Device::initialize(CameraModule *module)
+     /** Everything is good to go */
+ 
+     mDeviceInfo = info.static_camera_characteristics;
+-    mInterface = std::make_unique<HalInterface>(device);
++    //mInterface = std::make_unique<HalInterface>(device);
+ 
+     return initializeCommonLocked();
+ }
+@@ -3141,20 +3141,24 @@ Camera3Device::HalInterface::HalInterface(camera3_device_t *device) :
  Camera3Device::HalInterface::HalInterface(
              sp<ICameraDeviceSession> &session,
              std::shared_ptr<RequestMetadataQueue> queue) :
@@ -571,7 +578,7 @@ index ced1d3af4..e1c75360a 100644
      mHidlSession.clear();
  }
  
-@@ -3091,60 +3095,72 @@ status_t Camera3Device::HalInterface::constructDefaultRequestSettings(
+@@ -3169,60 +3173,72 @@ status_t Camera3Device::HalInterface::constructDefaultRequestSettings(
      if (!valid()) return INVALID_OPERATION;
      status_t res = OK;
  
@@ -694,7 +701,7 @@ index ced1d3af4..e1c75360a 100644
      return res;
  }
  
-@@ -3153,184 +3169,138 @@ status_t Camera3Device::HalInterface::configureStreams(camera3_stream_configurat
+@@ -3231,184 +3247,138 @@ status_t Camera3Device::HalInterface::configureStreams(camera3_stream_configurat
      if (!valid()) return INVALID_OPERATION;
      status_t res = OK;
  
@@ -987,7 +994,7 @@ index ced1d3af4..e1c75360a 100644
      return res;
  }
  
-@@ -3486,11 +3456,14 @@ status_t Camera3Device::HalInterface::processCaptureRequest(
+@@ -3564,11 +3534,14 @@ status_t Camera3Device::HalInterface::processCaptureRequest(
      if (!valid()) return INVALID_OPERATION;
      status_t res = OK;
  
@@ -1007,7 +1014,7 @@ index ced1d3af4..e1c75360a 100644
      return res;
  }
  
-@@ -3499,24 +3472,31 @@ status_t Camera3Device::HalInterface::flush() {
+@@ -3577,24 +3550,31 @@ status_t Camera3Device::HalInterface::flush() {
      if (!valid()) return INVALID_OPERATION;
      status_t res = OK;
  
@@ -1049,7 +1056,7 @@ index ced1d3af4..e1c75360a 100644
  }
  
  status_t Camera3Device::HalInterface::close() {
-@@ -3524,12 +3504,15 @@ status_t Camera3Device::HalInterface::close() {
+@@ -3602,12 +3582,15 @@ status_t Camera3Device::HalInterface::close() {
      if (!valid()) return INVALID_OPERATION;
      status_t res = OK;
  
@@ -1071,10 +1078,10 @@ index ced1d3af4..e1c75360a 100644
  }
  
 diff --git a/services/camera/libcameraservice/device3/Camera3Device.h b/services/camera/libcameraservice/device3/Camera3Device.h
-index fbbbd08ce..13220a54b 100644
+index 4aa70a7d7..b5715f9dc 100644
 --- a/services/camera/libcameraservice/device3/Camera3Device.h
 +++ b/services/camera/libcameraservice/device3/Camera3Device.h
-@@ -270,6 +270,7 @@ class Camera3Device :
+@@ -272,6 +272,7 @@ class Camera3Device :
          void getInflightBufferKeys(std::vector<std::pair<int32_t, int32_t>>* out);
  
        private:
