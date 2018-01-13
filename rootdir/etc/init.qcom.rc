@@ -811,20 +811,17 @@ on property:sys.boot_completed=1
     setprop sys.io.scheduler "bfq"
     start qcom-post-boot
 
-#on property:persist.radio.multisim.config=dsds
-#    stop ril-daemon
-#    start ril-daemon2
-#    start ril-daemon3
+on property:persist.radio.multisim.config=dsds
+    stop ril-daemon
+    start ril-daemon2
 
-#on property:persist.radio.multisim.config=dsda
-#    stop ril-daemon
-#    start ril-daemon2
-#    start ril-daemon3
+on property:persist.radio.multisim.config=dsda
+    stop ril-daemon
+    start ril-daemon2
 
-#on property:ro.multisim.simslotcount=2
-#    stop ril-daemon
-#    start ril-daemon2
-#    start ril-daemon3
+on property:ro.multisim.simslotcount=2
+    stop ril-daemon
+    start ril-daemon2
 
 service ril-daemon /vendor/bin/hw/rild -c 1 -l /system/lib/libsec-ril.so
     class main
@@ -836,13 +833,15 @@ service ril-daemon /vendor/bin/hw/rild -c 1 -l /system/lib/libsec-ril.so
     capabilities BLOCK_SUSPEND NET_ADMIN NET_RAW
 
 # RIL for multi rild
-#service ril-daemon3 /vendor/bin/hw/rild -l /system/lib/libsec-ril-dsds.so -c 2
-#    class main
-#    socket rild2 stream 660 root radio
-#    socket rild-debug2 stream 660 radio system
-#    user root
-#    disabled
-#    group radio cache inet misc audio log diag system drmrpc sdcard_r sdcard_rw shell wakelock
+service ril-daemon2 /vendor/bin/hw/rild -l /system/lib/libsec-ril-dsds.so -c 2
+    class main
+    socket rild stream 660 system radio
+    socket sap_uim_socket1 stream 660 bluetooth bluetooth
+    socket rild-debug stream 660 system radio
+    user radio
+    group radio cache inet misc audio sdcard_r sdcard_rw log vpn system readproc wakelock
+    capabilities BLOCK_SUSPEND NET_ADMIN NET_RAW
+    disabled
 
 service usb_uicc_enable /system/bin/sh /system/etc/init.qcom.uicc.sh
     class late_start
