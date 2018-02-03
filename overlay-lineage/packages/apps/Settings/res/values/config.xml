@@ -23,6 +23,6 @@
          Setting to false will disable Volume Rocker Wake support -->
     <bool name="config_show_volumeRockerWake">true</bool>
 
-    <!-- VoLTE support
-    <bool name="config_voice_over_lte_enabled">true</bool>-->
+    <!-- VoLTE support -->
+    <bool name="config_voice_over_lte_enabled">true</bool>
 </resources>
