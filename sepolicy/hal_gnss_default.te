@@ -1,0 +1,4 @@
+allow hal_gnss_default kernel:system module_request;
+allow hal_gnss_default qmuxd_socket:dir { search write add_name remove_name };
+allow hal_gnss_default sysfs:file { open read write };
+allow hal_gnss_default qmuxd_socket:sock_file { create getattr setattr unlink };

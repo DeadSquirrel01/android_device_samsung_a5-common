@@ -163,7 +163,8 @@ TARGET_USES_NEW_ION_API                :=true
 BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
 
 # SELinux
-include device/lineage/sepolicy/qcom/sepolicy.mk
+include device/qcom/sepolicy/sepolicy.mk
+include device/qcom/sepolicy/legacy-sepolicy.mk
 
 BOARD_SEPOLICY_DIRS += \
     device/samsung/a5-common/sepolicy
