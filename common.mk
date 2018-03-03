@@ -188,10 +188,6 @@ PRODUCT_PACKAGES += \
     libqcomfm_jni \
     qcom.fmradio
 
-# Gello
-PRODUCT_PACKAGES += \
-    Gello
-
 # IPv6 tethering
 PRODUCT_PACKAGES += \
     ebtables \
@@ -255,10 +251,6 @@ PRODUCT_PACKAGES += \
 #    NfcNci \
 #    Tag \
 #    com.android.nfc_extras
-
-# Screen Recording
-PRODUCT_PACKAGES += \
-    Screencast
 
 # NFC configuration
 #PRODUCT_COPY_FILES += \
