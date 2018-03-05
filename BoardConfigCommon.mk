@@ -193,6 +193,9 @@ TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
 # Ignore Dependencies
 ALLOW_MISSING_DEPENDENCIES := true
 
+# Shims
+TARGET_LD_SHIM_LIBS := /system/lib/libcrypto.so|libboringssl-compat.so:/system/lib/libsec-ril.so|libsec-ril_shim.so
+
 # TWRP
 ifeq ($(RECOVERY_VARIANT),twrp)
 TW_NO_REBOOT_BOOTLOADER := true
