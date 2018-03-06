@@ -76,12 +76,12 @@ BLUETOOTH_HCI_USE_MCT                       := true
 
 # RIL
 BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril/
-BOARD_PROVIDES_LIBRIL := true
-BOARD_MODEM_TYPE := xmm7260
+BOARD_PROVIDES_LIBRIL            := true
+BOARD_MODEM_TYPE                 := xmm7260
 
 # GPS
-TARGET_NO_RPC           := true
-USE_DEVICE_SPECIFIC_GPS := true
+TARGET_NO_RPC            := true
+USE_DEVICE_SPECIFIC_GPS  := true
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT          := true
@@ -149,8 +149,8 @@ PROTOBUF_SUPPORTED                  := true
 HAVE_SYNAPTICS_I2C_RMI4_FW_UPGRADE  := true
 
 # Media
-TARGET_USES_MEDIA_EXTENSIONS := true
-TARGET_QCOM_MEDIA_VARIANT := caf
+TARGET_USES_MEDIA_EXTENSIONS  := true
+TARGET_QCOM_MEDIA_VARIANT     := caf
 
 # Display
 TARGET_CONTINUOUS_SPLASH_ENABLED       := true
