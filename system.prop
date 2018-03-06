@@ -97,6 +97,3 @@ dalvik.vm.dex2oat-flags=--no-watch-dog
 # Treble Misc.
 persist.media.treble_omx=false
 camera.disable_treble=true
-
-# SDcardFS
-ro.sys.sdcardfs=false
