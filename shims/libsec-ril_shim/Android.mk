@@ -19,7 +19,7 @@ include $(CLEAR_VARS)
 LOCAL_SHARED_LIBRARIES := liblog libcutils libbinder libutils
 
 LOCAL_SRC_FILES := \
-    atomic.cpp
+    libsec-ril_shim.cpp
 
 LOCAL_MODULE := libsec-ril_shim
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES

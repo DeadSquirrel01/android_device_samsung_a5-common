@@ -55,6 +55,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     InputDisabler
 
+# Shims
+PRODUCT_PACKAGES += \
+    libizat_core_shim \
+    libsec-ril_shim
+
 # Radio
 PRODUCT_PACKAGES += \
     curl \
@@ -65,8 +70,7 @@ PRODUCT_PACKAGES += \
     librmnetctl \
     rmnetcli \
     libcnefeatureconfig \
-    macloader \
-    libsec-ril_shim
+    macloader
 
 # Audio
 PRODUCT_PACKAGES += \
