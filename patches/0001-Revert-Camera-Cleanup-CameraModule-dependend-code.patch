@@ -1,0 +1,2201 @@
+From 3f6a3e5a86df92257d4b13cc6647bd3e63cd3e27 Mon Sep 17 00:00:00 2001
+From: DeadSquirrel01 <m.marcaccini01@gmail.com>
+Date: Tue, 6 Mar 2018 14:38:19 +0100
+Subject: [PATCH] Revert "Camera: Cleanup 'CameraModule' dependend code"
+
+This reverts commit f53f66edb3b06d1df5caf1fa806f7ed95305a4cf.
+
+Change-Id: Ie4e6214a416ab0aded1f89d7ac53349c4aa721cc
+---
+ services/camera/libcameraservice/Android.mk        |   1 +
+ .../camera/libcameraservice/CameraFlashlight.cpp   | 441 ++++++++++++++++++++-
+ .../camera/libcameraservice/CameraFlashlight.h     |  80 ++++
+ services/camera/libcameraservice/CameraService.cpp | 415 +++++++++++++++++--
+ services/camera/libcameraservice/CameraService.h   |  15 +
+ .../camera/libcameraservice/api1/Camera2Client.cpp |   4 +
+ .../camera/libcameraservice/api1/Camera2Client.h   |   1 +
+ .../camera/libcameraservice/api1/CameraClient.cpp  |  11 +-
+ .../camera/libcameraservice/api1/CameraClient.h    |   4 +
+ .../libcameraservice/api2/CameraDeviceClient.cpp   |   4 +
+ .../libcameraservice/api2/CameraDeviceClient.h     |   1 +
+ .../libcameraservice/common/Camera2ClientBase.cpp  |   5 +
+ .../libcameraservice/common/Camera2ClientBase.h    |   2 +
+ .../libcameraservice/common/CameraDeviceBase.h     |   2 +
+ .../libcameraservice/common/CameraModule.cpp       | 403 +++++++++++++++++++
+ .../camera/libcameraservice/common/CameraModule.h  |  71 ++++
+ .../common/CameraProviderManager.cpp               |  24 +-
+ .../common/CameraProviderManager.h                 |  13 +-
+ .../device1/CameraHardwareInterface.cpp            |  31 ++
+ .../device1/CameraHardwareInterface.h              |   2 +
+ .../libcameraservice/device3/Camera3Device.cpp     |  78 ++++
+ .../libcameraservice/device3/Camera3Device.h       |   2 +
+ 22 files changed, 1539 insertions(+), 71 deletions(-)
+ create mode 100644 services/camera/libcameraservice/common/CameraModule.cpp
+ create mode 100644 services/camera/libcameraservice/common/CameraModule.h
+
+diff --git a/services/camera/libcameraservice/Android.mk b/services/camera/libcameraservice/Android.mk
+index a1c7d8724..9543c58a3 100644
+--- a/services/camera/libcameraservice/Android.mk
++++ b/services/camera/libcameraservice/Android.mk
+@@ -27,6 +27,7 @@ LOCAL_SRC_FILES :=  \
+     CameraFlashlight.cpp \
+     common/Camera2ClientBase.cpp \
+     common/CameraDeviceBase.cpp \
++    common/CameraModule.cpp \
+     common/CameraProviderManager.cpp \
+     common/FrameProcessorBase.cpp \
+     api1/CameraClient.cpp \
+diff --git a/services/camera/libcameraservice/CameraFlashlight.cpp b/services/camera/libcameraservice/CameraFlashlight.cpp
+index e06a81fb2..6bc070b2a 100644
+--- a/services/camera/libcameraservice/CameraFlashlight.cpp
++++ b/services/camera/libcameraservice/CameraFlashlight.cpp
+@@ -36,9 +36,16 @@ namespace android {
+ // CameraFlashlight implementation begins
+ // used by camera service to control flashflight.
+ /////////////////////////////////////////////////////////////////////
++CameraFlashlight::CameraFlashlight(CameraModule* cameraModule,
++        camera_module_callbacks_t* callbacks) :
++        mCameraModule(cameraModule),
++        mCallbacks(callbacks),
++        mFlashlightMapInitialized(false) {
++}
+ 
+ CameraFlashlight::CameraFlashlight(sp<CameraProviderManager> providerManager,
+         camera_module_callbacks_t* callbacks) :
++        mCameraModule(nullptr),
+         mProviderManager(providerManager),
+         mCallbacks(callbacks),
+         mFlashlightMapInitialized(false) {
+@@ -54,12 +61,52 @@ status_t CameraFlashlight::createFlashlightControl(const String8& cameraId) {
+         return INVALID_OPERATION;
+     }
+ 
+-    if (mProviderManager->supportSetTorchMode(cameraId.string())) {
+-        mFlashControl = new ProviderFlashControl(mProviderManager);
++    status_t res = OK;
++
++    if (mCameraModule == nullptr) {
++        if (mProviderManager->supportSetTorchMode(cameraId.string())) {
++            mFlashControl = new ProviderFlashControl(mProviderManager);
++        } else {
++            // Only HAL1 devices do not support setTorchMode
++            mFlashControl =
++                    new CameraHardwareInterfaceFlashControl(mProviderManager, *mCallbacks);
++        }
++    } else if (mCameraModule->getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_4) {
++        mFlashControl = new ModuleFlashControl(*mCameraModule);
++        if (mFlashControl == NULL) {
++            ALOGV("%s: cannot create flash control for module api v2.4+",
++                     __FUNCTION__);
++            return NO_MEMORY;
++        }
+     } else {
+-        // Only HAL1 devices do not support setTorchMode
+-        mFlashControl =
+-                new CameraHardwareInterfaceFlashControl(mProviderManager, *mCallbacks);
++        uint32_t deviceVersion = CAMERA_DEVICE_API_VERSION_1_0;
++
++        if (mCameraModule->getModuleApiVersion() >=
++                    CAMERA_MODULE_API_VERSION_2_0) {
++            camera_info info;
++            res = mCameraModule->getCameraInfo(
++                    atoi(cameraId.string()), &info);
++            if (res) {
++                ALOGE("%s: failed to get camera info for camera %s",
++                        __FUNCTION__, cameraId.string());
++                return res;
++            }
++            deviceVersion = info.device_version;
++        }
++
++        if (deviceVersion >= CAMERA_DEVICE_API_VERSION_3_0) {
++            CameraDeviceClientFlashControl *flashControl =
++                    new CameraDeviceClientFlashControl(*mCameraModule,
++                                                       *mCallbacks);
++            if (!flashControl) {
++                return NO_MEMORY;
++            }
++
++            mFlashControl = flashControl;
++        } else {
++            mFlashControl =
++                    new CameraHardwareInterfaceFlashControl(mCameraModule, *mCallbacks);
++        }
+     }
+ 
+     return OK;
+@@ -119,7 +166,11 @@ status_t CameraFlashlight::setTorchMode(const String8& cameraId, bool enabled) {
+ }
+ 
+ int CameraFlashlight::getNumberOfCameras() {
+-    return mProviderManager->getAPI1CompatibleCameraCount();
++    if (mCameraModule) {
++        return mCameraModule->getNumberOfCameras();
++    } else {
++        return mProviderManager->getStandardCameraCount();
++    }
+ }
+ 
+ status_t CameraFlashlight::findFlashUnits() {
+@@ -129,10 +180,16 @@ status_t CameraFlashlight::findFlashUnits() {
+     std::vector<String8> cameraIds;
+     int numberOfCameras = getNumberOfCameras();
+     cameraIds.resize(numberOfCameras);
+-    // No module, must be provider
+-    std::vector<std::string> ids = mProviderManager->getAPI1CompatibleCameraDeviceIds();
+-    for (size_t i = 0; i < cameraIds.size(); i++) {
+-        cameraIds[i] = String8(ids[i].c_str());
++    if (mCameraModule) {
++        for (size_t i = 0; i < cameraIds.size(); i++) {
++            cameraIds[i] = String8::format("%zu", i);
++        }
++    } else {
++        // No module, must be provider
++        std::vector<std::string> ids = mProviderManager->getStandardCameraDeviceIds();
++        for (size_t i = 0; i < cameraIds.size(); i++) {
++            cameraIds[i] = String8(ids[i].c_str());
++        }
+     }
+ 
+     mFlashControl.clear();
+@@ -194,7 +251,9 @@ bool CameraFlashlight::hasFlashUnitLocked(const String8& cameraId) {
+ 
+ bool CameraFlashlight::isBackwardCompatibleMode(const String8& cameraId) {
+     bool backwardCompatibleMode = false;
+-    if (mProviderManager != nullptr &&
++    if (mCameraModule && mCameraModule->getModuleApiVersion() < CAMERA_MODULE_API_VERSION_2_4) {
++        backwardCompatibleMode = true;
++    } else if (mProviderManager != nullptr &&
+             !mProviderManager->supportSetTorchMode(cameraId.string())) {
+         backwardCompatibleMode = true;
+     }
+@@ -309,13 +368,366 @@ status_t ProviderFlashControl::setTorchMode(const String8& cameraId, bool enable
+ // ProviderFlashControl implementation ends
+ 
+ /////////////////////////////////////////////////////////////////////
++// ModuleFlashControl implementation begins
++// Flash control for camera module v2.4 and above.
++/////////////////////////////////////////////////////////////////////
++ModuleFlashControl::ModuleFlashControl(CameraModule& cameraModule) :
++        mCameraModule(&cameraModule) {
++}
++
++ModuleFlashControl::~ModuleFlashControl() {
++}
++
++status_t ModuleFlashControl::hasFlashUnit(const String8& cameraId, bool *hasFlash) {
++    if (!hasFlash) {
++        return BAD_VALUE;
++    }
++
++    *hasFlash = false;
++    Mutex::Autolock l(mLock);
++
++    camera_info info;
++    status_t res = mCameraModule->getCameraInfo(atoi(cameraId.string()),
++            &info);
++    if (res != 0) {
++        return res;
++    }
++
++    CameraMetadata metadata;
++    metadata = info.static_camera_characteristics;
++    camera_metadata_entry flashAvailable =
++            metadata.find(ANDROID_FLASH_INFO_AVAILABLE);
++    if (flashAvailable.count == 1 && flashAvailable.data.u8[0] == 1) {
++        *hasFlash = true;
++    }
++
++    return OK;
++}
++
++status_t ModuleFlashControl::setTorchMode(const String8& cameraId, bool enabled) {
++    ALOGV("%s: set camera %s torch mode to %d", __FUNCTION__,
++            cameraId.string(), enabled);
++
++    Mutex::Autolock l(mLock);
++    return mCameraModule->setTorchMode(cameraId.string(), enabled);
++}
++// ModuleFlashControl implementation ends
++
++/////////////////////////////////////////////////////////////////////
++// CameraDeviceClientFlashControl implementation begins
++// Flash control for camera module <= v2.3 and camera HAL v2-v3
++/////////////////////////////////////////////////////////////////////
++CameraDeviceClientFlashControl::CameraDeviceClientFlashControl(
++        CameraModule& cameraModule,
++        const camera_module_callbacks_t& callbacks) :
++        mCameraModule(&cameraModule),
++        mCallbacks(&callbacks),
++        mTorchEnabled(false),
++        mMetadata(NULL),
++        mStreaming(false) {
++}
++
++CameraDeviceClientFlashControl::~CameraDeviceClientFlashControl() {
++    disconnectCameraDevice();
++    if (mMetadata) {
++        delete mMetadata;
++    }
++
++    mSurface.clear();
++    mSurfaceTexture.clear();
++    mProducer.clear();
++    mConsumer.clear();
++
++    if (mTorchEnabled) {
++        if (mCallbacks) {
++            ALOGV("%s: notify the framework that torch was turned off",
++                    __FUNCTION__);
++            mCallbacks->torch_mode_status_change(mCallbacks,
++                    mCameraId.string(), TORCH_MODE_STATUS_AVAILABLE_OFF);
++        }
++    }
++}
++
++status_t CameraDeviceClientFlashControl::initializeSurface(
++        sp<CameraDeviceBase> &device, int32_t width, int32_t height) {
++    status_t res;
++    BufferQueue::createBufferQueue(&mProducer, &mConsumer);
++
++    mSurfaceTexture = new GLConsumer(mConsumer, 0, GLConsumer::TEXTURE_EXTERNAL,
++            true, true);
++    if (mSurfaceTexture == NULL) {
++        return NO_MEMORY;
++    }
++
++    int32_t format = HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED;
++    res = mSurfaceTexture->setDefaultBufferSize(width, height);
++    if (res) {
++        return res;
++    }
++    res = mSurfaceTexture->setDefaultBufferFormat(format);
++    if (res) {
++        return res;
++    }
++
++    mSurface = new Surface(mProducer, /*useAsync*/ true);
++    if (mSurface == NULL) {
++        return NO_MEMORY;
++    }
++    res = device->createStream(mSurface, width, height, format,
++            HAL_DATASPACE_UNKNOWN, CAMERA3_STREAM_ROTATION_0, &mStreamId);
++    if (res) {
++        return res;
++    }
++
++    res = device->configureStreams();
++    if (res) {
++        return res;
++    }
++
++    return res;
++}
++
++status_t CameraDeviceClientFlashControl::getSmallestSurfaceSize(
++        const camera_info& info, int32_t *width, int32_t *height) {
++    if (!width || !height) {
++        return BAD_VALUE;
++    }
++
++    int32_t w = INT32_MAX;
++    int32_t h = 1;
++
++    CameraMetadata metadata;
++    metadata = info.static_camera_characteristics;
++    camera_metadata_entry streamConfigs =
++            metadata.find(ANDROID_SCALER_AVAILABLE_STREAM_CONFIGURATIONS);
++    for (size_t i = 0; i < streamConfigs.count; i += 4) {
++        int32_t fmt = streamConfigs.data.i32[i];
++        if (fmt == ANDROID_SCALER_AVAILABLE_FORMATS_IMPLEMENTATION_DEFINED) {
++            int32_t ww = streamConfigs.data.i32[i + 1];
++            int32_t hh = streamConfigs.data.i32[i + 2];
++
++            if (w * h > ww * hh) {
++                w = ww;
++                h = hh;
++            }
++        }
++    }
++
++    // if stream configuration is not found, try available processed sizes.
++    if (streamConfigs.count == 0) {
++        camera_metadata_entry availableProcessedSizes =
++            metadata.find(ANDROID_SCALER_AVAILABLE_PROCESSED_SIZES);
++        for (size_t i = 0; i < availableProcessedSizes.count; i += 2) {
++            int32_t ww = availableProcessedSizes.data.i32[i];
++            int32_t hh = availableProcessedSizes.data.i32[i + 1];
++            if (w * h > ww * hh) {
++                w = ww;
++                h = hh;
++            }
++        }
++    }
++
++    if (w == INT32_MAX) {
++        return NAME_NOT_FOUND;
++    }
++
++    *width = w;
++    *height = h;
++
++    return OK;
++}
++
++status_t CameraDeviceClientFlashControl::connectCameraDevice(
++        const String8& cameraId) {
++    camera_info info;
++    status_t res = mCameraModule->getCameraInfo(atoi(cameraId.string()), &info);
++    if (res != 0) {
++        ALOGE("%s: failed to get camera info for camera %s", __FUNCTION__,
++                cameraId.string());
++        return res;
++    }
++
++    sp<CameraDeviceBase> device =
++            new Camera3Device(cameraId);
++    if (device == NULL) {
++        return NO_MEMORY;
++    }
++
++    res = device->initialize(mCameraModule);
++    if (res) {
++        return res;
++    }
++
++    int32_t width, height;
++    res = getSmallestSurfaceSize(info, &width, &height);
++    if (res) {
++        return res;
++    }
++    res = initializeSurface(device, width, height);
++    if (res) {
++        return res;
++    }
++
++    mCameraId = cameraId;
++    mStreaming = (info.device_version <= CAMERA_DEVICE_API_VERSION_3_1);
++    mDevice = device;
++
++    return OK;
++}
++
++status_t CameraDeviceClientFlashControl::disconnectCameraDevice() {
++    if (mDevice != NULL) {
++        mDevice->disconnect();
++        mDevice.clear();
++    }
++
++    return OK;
++}
++
++
++
++status_t CameraDeviceClientFlashControl::hasFlashUnit(const String8& cameraId,
++        bool *hasFlash) {
++    ALOGV("%s: checking if camera %s has a flash unit", __FUNCTION__,
++            cameraId.string());
++
++    Mutex::Autolock l(mLock);
++    return hasFlashUnitLocked(cameraId, hasFlash);
++
++}
++
++status_t CameraDeviceClientFlashControl::hasFlashUnitLocked(
++        const String8& cameraId, bool *hasFlash) {
++    if (!hasFlash) {
++        return BAD_VALUE;
++    }
++
++    camera_info info;
++    status_t res = mCameraModule->getCameraInfo(
++            atoi(cameraId.string()), &info);
++    if (res != 0) {
++        ALOGE("%s: failed to get camera info for camera %s", __FUNCTION__,
++                cameraId.string());
++        return res;
++    }
++
++    CameraMetadata metadata;
++    metadata = info.static_camera_characteristics;
++    camera_metadata_entry flashAvailable =
++            metadata.find(ANDROID_FLASH_INFO_AVAILABLE);
++    if (flashAvailable.count == 1 && flashAvailable.data.u8[0] == 1) {
++        *hasFlash = true;
++    }
++
++    return OK;
++}
++
++status_t CameraDeviceClientFlashControl::submitTorchEnabledRequest() {
++    status_t res;
++
++    if (mMetadata == NULL) {
++        mMetadata = new CameraMetadata();
++        if (mMetadata == NULL) {
++            return NO_MEMORY;
++        }
++        res = mDevice->createDefaultRequest(
++                CAMERA3_TEMPLATE_PREVIEW, mMetadata);
++        if (res) {
++            return res;
++        }
++    }
++
++    uint8_t torchOn = ANDROID_FLASH_MODE_TORCH;
++    mMetadata->update(ANDROID_FLASH_MODE, &torchOn, 1);
++    mMetadata->update(ANDROID_REQUEST_OUTPUT_STREAMS, &mStreamId, 1);
++
++    uint8_t aeMode = ANDROID_CONTROL_AE_MODE_ON;
++    mMetadata->update(ANDROID_CONTROL_AE_MODE, &aeMode, 1);
++
++    int32_t requestId = 0;
++    mMetadata->update(ANDROID_REQUEST_ID, &requestId, 1);
++
++    if (mStreaming) {
++        res = mDevice->setStreamingRequest(*mMetadata);
++    } else {
++        res = mDevice->capture(*mMetadata);
++    }
++    return res;
++}
++
++
++
++
++status_t CameraDeviceClientFlashControl::setTorchMode(
++        const String8& cameraId, bool enabled) {
++    bool hasFlash = false;
++
++    Mutex::Autolock l(mLock);
++    status_t res = hasFlashUnitLocked(cameraId, &hasFlash);
++
++    // pre-check
++    if (enabled) {
++        // invalid camera?
++        if (res) {
++            return -EINVAL;
++        }
++        // no flash unit?
++        if (!hasFlash) {
++            return -ENOSYS;
++        }
++        // already opened for a different device?
++        if (mDevice != NULL && cameraId != mCameraId) {
++            return BAD_INDEX;
++        }
++    } else if (mDevice == NULL || cameraId != mCameraId) {
++        // disabling the torch mode of an un-opened or different device.
++        return OK;
++    } else {
++        // disabling the torch mode of currently opened device
++        disconnectCameraDevice();
++        mTorchEnabled = false;
++        mCallbacks->torch_mode_status_change(mCallbacks,
++            cameraId.string(), TORCH_MODE_STATUS_AVAILABLE_OFF);
++        return OK;
++    }
++
++    if (mDevice == NULL) {
++        res = connectCameraDevice(cameraId);
++        if (res) {
++            return res;
++        }
++    }
++
++    res = submitTorchEnabledRequest();
++    if (res) {
++        return res;
++    }
++
++    mTorchEnabled = true;
++    mCallbacks->torch_mode_status_change(mCallbacks,
++            cameraId.string(), TORCH_MODE_STATUS_AVAILABLE_ON);
++    return OK;
++}
++// CameraDeviceClientFlashControl implementation ends
++
++
++/////////////////////////////////////////////////////////////////////
+ // CameraHardwareInterfaceFlashControl implementation begins
+ // Flash control for camera module <= v2.3 and camera HAL v1
+ /////////////////////////////////////////////////////////////////////
++CameraHardwareInterfaceFlashControl::CameraHardwareInterfaceFlashControl(
++        CameraModule* cameraModule,
++        const camera_module_callbacks_t& callbacks) :
++        mCameraModule(cameraModule),
++        mProviderManager(nullptr),
++        mCallbacks(&callbacks),
++        mTorchEnabled(false) {
++}
+ 
+ CameraHardwareInterfaceFlashControl::CameraHardwareInterfaceFlashControl(
+         sp<CameraProviderManager> manager,
+         const camera_module_callbacks_t& callbacks) :
++        mCameraModule(nullptr),
+         mProviderManager(manager),
+         mCallbacks(&callbacks),
+         mTorchEnabled(false) {
+@@ -519,7 +931,12 @@ status_t CameraHardwareInterfaceFlashControl::connectCameraDevice(
+     sp<CameraHardwareInterface> device =
+             new CameraHardwareInterface(cameraId.string());
+ 
+-    status_t res = device->initialize(mProviderManager);
++    status_t res;
++    if (mCameraModule != nullptr) {
++        res = device->initialize(mCameraModule);
++    } else {
++        res = device->initialize(mProviderManager);
++    }
+     if (res) {
+         ALOGE("%s: initializing camera %s failed", __FUNCTION__,
+                 cameraId.string());
+diff --git a/services/camera/libcameraservice/CameraFlashlight.h b/services/camera/libcameraservice/CameraFlashlight.h
+index c86ee851a..98f269a6c 100644
+--- a/services/camera/libcameraservice/CameraFlashlight.h
++++ b/services/camera/libcameraservice/CameraFlashlight.h
+@@ -23,6 +23,7 @@
+ #include <utils/KeyedVector.h>
+ #include <utils/SortedVector.h>
+ #include "common/CameraProviderManager.h"
++#include "common/CameraModule.h"
+ #include "common/CameraDeviceBase.h"
+ #include "device1/CameraHardwareInterface.h"
+ 
+@@ -54,6 +55,8 @@ class FlashControlBase : public virtual VirtualLightRefBase {
+  */
+ class CameraFlashlight : public virtual VirtualLightRefBase {
+     public:
++        CameraFlashlight(CameraModule* cameraModule,
++                camera_module_callbacks_t* callbacks);
+         CameraFlashlight(sp<CameraProviderManager> providerManager,
+                 camera_module_callbacks_t* callbacks);
+         virtual ~CameraFlashlight();
+@@ -97,6 +100,7 @@ class CameraFlashlight : public virtual VirtualLightRefBase {
+ 
+         sp<FlashControlBase> mFlashControl;
+ 
++        CameraModule *mCameraModule;
+         sp<CameraProviderManager> mProviderManager;
+ 
+         const camera_module_callbacks_t *mCallbacks;
+@@ -128,11 +132,86 @@ class ProviderFlashControl : public FlashControlBase {
+ };
+ 
+ /**
++ * Flash control for camera module v2.4 and above.
++ */
++class ModuleFlashControl : public FlashControlBase {
++    public:
++        ModuleFlashControl(CameraModule& cameraModule);
++        virtual ~ModuleFlashControl();
++
++        // FlashControlBase
++        status_t hasFlashUnit(const String8& cameraId, bool *hasFlash);
++        status_t setTorchMode(const String8& cameraId, bool enabled);
++
++    private:
++        CameraModule *mCameraModule;
++
++        Mutex mLock;
++};
++
++/**
++ * Flash control for camera module <= v2.3 and camera HAL v2-v3
++ */
++class CameraDeviceClientFlashControl : public FlashControlBase {
++    public:
++        CameraDeviceClientFlashControl(CameraModule& cameraModule,
++                const camera_module_callbacks_t& callbacks);
++        virtual ~CameraDeviceClientFlashControl();
++
++        // FlashControlBase
++        status_t setTorchMode(const String8& cameraId, bool enabled);
++        status_t hasFlashUnit(const String8& cameraId, bool *hasFlash);
++
++    private:
++        // connect to a camera device
++        status_t connectCameraDevice(const String8& cameraId);
++        // disconnect and free mDevice
++        status_t disconnectCameraDevice();
++
++        // initialize a surface
++        status_t initializeSurface(sp<CameraDeviceBase>& device, int32_t width,
++                int32_t height);
++
++        // submit a request to enable the torch mode
++        status_t submitTorchEnabledRequest();
++
++        // get the smallest surface size of IMPLEMENTATION_DEFINED
++        status_t getSmallestSurfaceSize(const camera_info& info, int32_t *width,
++                    int32_t *height);
++
++        // protected by mLock
++        status_t hasFlashUnitLocked(const String8& cameraId, bool *hasFlash);
++
++        CameraModule *mCameraModule;
++        const camera_module_callbacks_t *mCallbacks;
++        String8 mCameraId;
++        bool mTorchEnabled;
++        CameraMetadata *mMetadata;
++        // WORKAROUND: will be set to true for HAL v2 devices where
++        // setStreamingRequest() needs to be call for torch mode settings to
++        // take effect.
++        bool mStreaming;
++
++        sp<CameraDeviceBase> mDevice;
++
++        sp<IGraphicBufferProducer> mProducer;
++        sp<IGraphicBufferConsumer>  mConsumer;
++        sp<GLConsumer> mSurfaceTexture;
++        sp<Surface> mSurface;
++        int32_t mStreamId;
++
++        Mutex mLock;
++};
++
++/**
+  * Flash control for camera module <= v2.3 and camera HAL v1
+  */
+ class CameraHardwareInterfaceFlashControl : public FlashControlBase {
+     public:
+         CameraHardwareInterfaceFlashControl(
++                CameraModule* cameraModule,
++                const camera_module_callbacks_t& callbacks);
++        CameraHardwareInterfaceFlashControl(
+                 sp<CameraProviderManager> manager,
+                 const camera_module_callbacks_t& callbacks);
+         virtual ~CameraHardwareInterfaceFlashControl();
+@@ -165,6 +244,7 @@ class CameraHardwareInterfaceFlashControl : public FlashControlBase {
+         // function, keepDeviceOpen is ignored.
+         status_t hasFlashUnitLocked(const String8& cameraId, bool *hasFlash, bool keepDeviceOpen);
+ 
++        CameraModule *mCameraModule;
+         sp<CameraProviderManager> mProviderManager;
+         const camera_module_callbacks_t *mCallbacks;
+         sp<CameraHardwareInterface> mDevice;
+diff --git a/services/camera/libcameraservice/CameraService.cpp b/services/camera/libcameraservice/CameraService.cpp
+index 576663d6a..a97dbee20 100644
+--- a/services/camera/libcameraservice/CameraService.cpp
++++ b/services/camera/libcameraservice/CameraService.cpp
+@@ -168,7 +168,7 @@ static void torch_mode_status_change(
+ CameraService::CameraService() :
+         mEventLog(DEFAULT_EVENT_LOG_LENGTH),
+         mNumberOfCameras(0), mNumberOfNormalCameras(0),
+-        mSoundRef(0), mInitialized(false) {
++        mSoundRef(0), mInitialized(false), mModule(nullptr) {
+     ALOGI("CameraService started (pid=%d)", getpid());
+ 
+     this->camera_device_status_change = android::camera_device_status_change;
+@@ -190,7 +190,13 @@ void CameraService::onFirstRef()
+ 
+     status_t res = INVALID_OPERATION;
+ 
+-    res = enumerateProviders();
++    bool disableTreble = property_get_bool("camera.disable_treble", false);
++    if (disableTreble) {
++        ALOGI("Treble disabled - using legacy path");
++        res = loadLegacyHalModule();
++    } else {
++        res = enumerateProviders();
++    }
+     if (res == OK) {
+         mInitialized = true;
+     }
+@@ -198,6 +204,108 @@ void CameraService::onFirstRef()
+     CameraService::pingCameraServiceProxy();
+ }
+ 
++status_t CameraService::loadLegacyHalModule() {
++    camera_module_t *rawModule;
++    int err = hw_get_module(CAMERA_HARDWARE_MODULE_ID,
++            (const hw_module_t **)&rawModule);
++    if (err < 0) {
++        ALOGE("Could not load camera HAL module: %d (%s)", err, strerror(-err));
++        logServiceError("Could not load camera HAL module", err);
++        return INVALID_OPERATION;
++    }
++
++    mModule = new CameraModule(rawModule);
++    err = mModule->init();
++    if (err != OK) {
++        ALOGE("Could not initialize camera HAL module: %d (%s)", err,
++            strerror(-err));
++        logServiceError("Could not initialize camera HAL module", err);
++
++        delete mModule;
++        mModule = nullptr;
++        return INVALID_OPERATION;
++    }
++    ALOGI("Loaded \"%s\" camera module", mModule->getModuleName());
++
++    mNumberOfCameras = mModule->getNumberOfCameras();
++    mNumberOfNormalCameras = mNumberOfCameras;
++
++    // Setup vendor tags before we call get_camera_info the first time
++    // because HAL might need to setup static vendor keys in get_camera_info
++    VendorTagDescriptor::clearGlobalVendorTagDescriptor();
++    if (mModule->getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_2) {
++        setUpVendorTags();
++    }
++
++    mFlashlight = new CameraFlashlight(mModule, this);
++    status_t res = mFlashlight->findFlashUnits();
++    if (res) {
++        // impossible because we haven't open any camera devices.
++        ALOGE("Failed to find flash units.");
++    }
++
++    int latestStrangeCameraId = INT_MAX;
++    for (int i = 0; i < mNumberOfCameras; i++) {
++        String8 cameraId = String8::format("%d", i);
++
++        // Get camera info
++
++        struct camera_info info;
++        bool haveInfo = true;
++        status_t rc = mModule->getCameraInfo(i, &info);
++        if (rc != NO_ERROR) {
++            ALOGE("%s: Received error loading camera info for device %d, cost and"
++                    " conflicting devices fields set to defaults for this device.",
++                    __FUNCTION__, i);
++            haveInfo = false;
++        }
++
++        // Check for backwards-compatibility support
++        if (haveInfo) {
++            if (checkCameraCapabilities(i, info, &latestStrangeCameraId) != OK) {
++                delete mModule;
++                mModule = nullptr;
++                return INVALID_OPERATION;
++            }
++        }
++
++        // Defaults to use for cost and conflicting devices
++        int cost = 100;
++        char** conflicting_devices = nullptr;
++        size_t conflicting_devices_length = 0;
++
++        // If using post-2.4 module version, query the cost + conflicting devices from the HAL
++        if (mModule->getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_4 && haveInfo) {
++            cost = info.resource_cost;
++            conflicting_devices = info.conflicting_devices;
++            conflicting_devices_length = info.conflicting_devices_length;
++        }
++
++        std::set<String8> conflicting;
++        for (size_t i = 0; i < conflicting_devices_length; i++) {
++            conflicting.emplace(String8(conflicting_devices[i]));
++        }
++
++        // Initialize state for each camera device
++        {
++            Mutex::Autolock lock(mCameraStatesLock);
++            mCameraStates.emplace(cameraId, std::make_shared<CameraState>(cameraId, cost,
++                    conflicting));
++        }
++
++        if (mFlashlight->hasFlashUnit(cameraId)) {
++            mTorchStatusMap.add(cameraId,
++                    TorchModeStatus::AVAILABLE_OFF);
++        }
++    }
++
++    if (mModule->getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_1) {
++        mModule->setCallbacks(this);
++    }
++
++    return OK;
++}
++
+ status_t CameraService::enumerateProviders() {
+     status_t res;
+     Mutex::Autolock l(mServiceLock);
+@@ -213,8 +321,7 @@ status_t CameraService::enumerateProviders() {
+     }
+ 
+     mNumberOfCameras = mCameraProviderManager->getCameraCount();
+-    mNumberOfNormalCameras =
+-            mCameraProviderManager->getAPI1CompatibleCameraCount();
++    mNumberOfNormalCameras = mCameraProviderManager->getStandardCameraCount();
+ 
+     // Setup vendor tags before we call get_camera_info the first time
+     // because HAL might need to setup static vendor keys in get_camera_info
+@@ -293,6 +400,10 @@ void CameraService::pingCameraServiceProxy() {
+ }
+ 
+ CameraService::~CameraService() {
++    if (mModule) {
++        delete mModule;
++        mModule = nullptr;
++    }
+     VendorTagDescriptor::clearGlobalVendorTagDescriptor();
+ }
+ 
+@@ -469,13 +580,28 @@ Status CameraService::getCameraInfo(int cameraId,
+     }
+ 
+     Status ret = Status::ok();
+-    status_t err = mCameraProviderManager->getCameraInfo(std::to_string(cameraId), cameraInfo);
+-    if (err != OK) {
+-        ret = STATUS_ERROR_FMT(ERROR_INVALID_OPERATION,
+-                "Error retrieving camera info from device %d: %s (%d)", cameraId,
+-                strerror(-err), err);
++    if (mModule != nullptr) {
++        struct camera_info info;
++        ret = filterGetInfoErrorCode(mModule->getCameraInfo(cameraId, &info));
++
++        if (ret.isOk()) {
++            cameraInfo->facing = info.facing;
++            cameraInfo->orientation = info.orientation;
++            // CameraInfo is for android.hardware.Camera which does not
++            // support external camera facing. The closest approximation would be
++            // front camera.
++            if (cameraInfo->facing == CAMERA_FACING_EXTERNAL) {
++                cameraInfo->facing = hardware::CAMERA_FACING_FRONT;
++            }
++        }
++    } else {
++        status_t err = mCameraProviderManager->getCameraInfo(std::to_string(cameraId), cameraInfo);
++        if (err != OK) {
++            ret = STATUS_ERROR_FMT(ERROR_INVALID_OPERATION,
++                    "Error retrieving camera info from device %d: %s (%d)", cameraId,
++                    strerror(-err), err);
++        }
+     }
+-
+     return ret;
+ }
+ 
+@@ -504,12 +630,34 @@ Status CameraService::getCameraCharacteristics(const String16& cameraId,
+ 
+     Status ret{};
+ 
+-    status_t res = mCameraProviderManager->getCameraCharacteristics(
+-            String8(cameraId).string(), cameraInfo);
+-    if (res != OK) {
+-        return STATUS_ERROR_FMT(ERROR_INVALID_OPERATION, "Unable to retrieve camera "
+-                "characteristics for device %s: %s (%d)", String8(cameraId).string(),
+-                strerror(-res), res);
++    if (mModule != nullptr) {
++        int id = cameraIdToInt(String8(cameraId));
++
++        if (id < 0 || id >= mNumberOfCameras) {
++            ALOGE("%s: Invalid camera id: %d", __FUNCTION__, id);
++            return STATUS_ERROR_FMT(ERROR_ILLEGAL_ARGUMENT,
++                    "Invalid camera id: %d", id);
++        }
++
++        int version = getDeviceVersion(String8(cameraId));
++        if (version < CAMERA_DEVICE_API_VERSION_3_0) {
++            return STATUS_ERROR_FMT(ERROR_ILLEGAL_ARGUMENT, "Can't get camera characteristics"
++                    " for devices with HAL version < 3.0, %d is version %x", id, version);
++        }
++
++        struct camera_info info;
++        ret = filterGetInfoErrorCode(mModule->getCameraInfo(id, &info));
++        if (ret.isOk()) {
++            *cameraInfo = info.static_camera_characteristics;
++        }
++    } else {
++        status_t res = mCameraProviderManager->getCameraCharacteristics(
++                String8(cameraId).string(), cameraInfo);
++        if (res != OK) {
++            return STATUS_ERROR_FMT(ERROR_INVALID_OPERATION, "Unable to retrieve camera "
++                    "characteristics for device %s: %s (%d)", String8(cameraId).string(),
++                    strerror(-res), res);
++        }
+     }
+ 
+     return ret;
+@@ -566,20 +714,39 @@ int CameraService::getDeviceVersion(const String8& cameraId, int* facing) {
+ 
+     int deviceVersion = 0;
+ 
+-    status_t res;
+-    hardware::hidl_version maxVersion{0,0};
+-    res = mCameraProviderManager->getHighestSupportedVersion(cameraId.string(),
+-            &maxVersion);
+-    if (res != OK) return -1;
+-    deviceVersion = HARDWARE_DEVICE_API_VERSION(maxVersion.get_major(), maxVersion.get_minor());
+-
+-    hardware::CameraInfo info;
+-    if (facing) {
+-        res = mCameraProviderManager->getCameraInfo(cameraId.string(), &info);
++    if (mModule != nullptr) {
++        int id = cameraIdToInt(cameraId);
++        if (id < 0) return -1;
++
++        struct camera_info info;
++        if (mModule->getCameraInfo(id, &info) != OK) {
++            return -1;
++        }
++
++        if (mModule->getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_0) {
++            deviceVersion = info.device_version;
++        } else {
++            deviceVersion = CAMERA_DEVICE_API_VERSION_1_0;
++        }
++
++        if (facing) {
++            *facing = info.facing;
++        }
++    } else {
++        status_t res;
++        hardware::hidl_version maxVersion{0,0};
++        res = mCameraProviderManager->getHighestSupportedVersion(cameraId.string(),
++                &maxVersion);
+         if (res != OK) return -1;
+-        *facing = info.facing;
+-    }
++        deviceVersion = HARDWARE_DEVICE_API_VERSION(maxVersion.get_major(), maxVersion.get_minor());
+ 
++        hardware::CameraInfo info;
++        if (facing) {
++            res = mCameraProviderManager->getCameraInfo(cameraId.string(), &info);
++            if (res != OK) return -1;
++            *facing = info.facing;
++        }
++    }
+     return deviceVersion;
+ }
+ 
+@@ -600,6 +767,45 @@ Status CameraService::filterGetInfoErrorCode(status_t err) {
+     }
+ }
+ 
++bool CameraService::setUpVendorTags() {
++    ATRACE_CALL();
++    if (mModule == nullptr) return false;
++
++    vendor_tag_ops_t vOps = vendor_tag_ops_t();
++
++    // Check if vendor operations have been implemented
++    if (!mModule->isVendorTagDefined()) {
++        ALOGI("%s: No vendor tags defined for this device.", __FUNCTION__);
++        return false;
++    }
++
++    mModule->getVendorTagOps(&vOps);
++
++    // Ensure all vendor operations are present
++    if (vOps.get_tag_count == NULL || vOps.get_all_tags == NULL ||
++            vOps.get_section_name == NULL || vOps.get_tag_name == NULL ||
++            vOps.get_tag_type == NULL) {
++        ALOGE("%s: Vendor tag operations not fully defined. Ignoring definitions."
++               , __FUNCTION__);
++        return false;
++    }
++
++    // Read all vendor tag definitions into a descriptor
++    sp<VendorTagDescriptor> desc;
++    status_t res;
++    if ((res = VendorTagDescriptor::createDescriptorFromOps(&vOps, /*out*/desc))
++            != OK) {
++        ALOGE("%s: Could not generate descriptor from vendor tag operations,"
++              "received error %s (%d). Camera clients will not be able to use"
++              "vendor tags", __FUNCTION__, strerror(res), res);
++        return false;
++    }
++
++    // Set the global descriptor to use with camera metadata
++    VendorTagDescriptor::setAsGlobalVendorTagDescriptor(desc);
++    return true;
++}
++
+ Status CameraService::makeClient(const sp<CameraService>& cameraService,
+         const sp<IInterface>& cameraCb, const String16& packageName, const String8& cameraId,
+         int facing, int clientPid, uid_t clientUid, int servicePid, bool legacyMode,
+@@ -1235,6 +1441,25 @@ Status CameraService::connectLegacy(
+ 
+     ATRACE_CALL();
+     String8 id = String8::format("%d", cameraId);
++    if (mModule != nullptr) {
++        int apiVersion = mModule->getModuleApiVersion();
++        if (halVersion != CAMERA_HAL_API_VERSION_UNSPECIFIED &&
++                apiVersion < CAMERA_MODULE_API_VERSION_2_3) {
++            /*
++             * Either the HAL version is unspecified in which case this just creates
++             * a camera client selected by the latest device version, or
++             * it's a particular version in which case the HAL must supported
++             * the open_legacy call
++             */
++            String8 msg = String8::format("Camera HAL module version %x too old for connectLegacy!",
++                    apiVersion);
++            ALOGE("%s: %s",
++                    __FUNCTION__, msg.string());
++            logRejected(id, getCallingPid(), String8(clientPackageName),
++                    msg);
++            return STATUS_ERROR(ERROR_ILLEGAL_ARGUMENT, msg.string());
++        }
++    }
+ 
+     Status ret = Status::ok();
+     sp<Client> client = nullptr;
+@@ -1377,7 +1602,12 @@ Status CameraService::connectHelper(const sp<CALLBACK>& cameraCb, const String8&
+         LOG_ALWAYS_FATAL_IF(client.get() == nullptr, "%s: CameraService in invalid state",
+                 __FUNCTION__);
+ 
+-        err = client->initialize(mCameraProviderManager);
++        if (mModule != nullptr) {
++            err = client->initialize(mModule);
++        } else {
++            err = client->initialize(mCameraProviderManager);
++        }
++
+         if (err != OK) {
+             ALOGE("%s: Could not initialize client from HAL.", __FUNCTION__);
+             // Errors could be from the HAL module open call or from AppOpsManager
+@@ -1797,6 +2027,83 @@ bool CameraService::evictClientIdByRemote(const wp<IBinder>& remote) {
+     return ret;
+ }
+ 
++
++/**
++ * Check camera capabilities, such as support for basic color operation
++ * Also check that the device HAL version is still in support
++ */
++int CameraService::checkCameraCapabilities(int id, camera_info info, int *latestStrangeCameraId) {
++    if (mModule == nullptr) return NO_INIT;
++
++    // device_version undefined in CAMERA_MODULE_API_VERSION_1_0,
++    // All CAMERA_MODULE_API_VERSION_1_0 devices are backward-compatible
++    if (mModule->getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_0) {
++        // Verify the device version is in the supported range
++        switch (info.device_version) {
++            case CAMERA_DEVICE_API_VERSION_1_0:
++            case CAMERA_DEVICE_API_VERSION_3_0:
++            case CAMERA_DEVICE_API_VERSION_3_1:
++            case CAMERA_DEVICE_API_VERSION_3_2:
++            case CAMERA_DEVICE_API_VERSION_3_3:
++            case CAMERA_DEVICE_API_VERSION_3_4:
++                // in support
++                break;
++            case CAMERA_DEVICE_API_VERSION_2_0:
++            case CAMERA_DEVICE_API_VERSION_2_1:
++                // no longer supported
++            default:
++                ALOGE("%s: Device %d has HAL version %x, which is not supported",
++                        __FUNCTION__, id, info.device_version);
++                String8 msg = String8::format(
++                        "Unsupported device HAL version %x for device %d",
++                        info.device_version, id);
++                logServiceError(msg.string(), NO_INIT);
++                return NO_INIT;
++        }
++    }
++
++    // Assume all devices pre-v3.3 are backward-compatible
++    bool isBackwardCompatible = true;
++    if (mModule->getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_0
++            && info.device_version >= CAMERA_DEVICE_API_VERSION_3_3) {
++        isBackwardCompatible = false;
++        status_t res;
++        camera_metadata_ro_entry_t caps;
++        res = find_camera_metadata_ro_entry(
++            info.static_camera_characteristics,
++            ANDROID_REQUEST_AVAILABLE_CAPABILITIES,
++            &caps);
++        if (res != 0) {
++            ALOGW("%s: Unable to find camera capabilities for camera device %d",
++                    __FUNCTION__, id);
++            caps.count = 0;
++        }
++        for (size_t i = 0; i < caps.count; i++) {
++            if (caps.data.u8[i] ==
++                    ANDROID_REQUEST_AVAILABLE_CAPABILITIES_BACKWARD_COMPATIBLE) {
++                isBackwardCompatible = true;
++                break;
++            }
++        }
++    }
++
++    if (!isBackwardCompatible) {
++        mNumberOfNormalCameras--;
++        *latestStrangeCameraId = id;
++    } else {
++        if (id > *latestStrangeCameraId) {
++            ALOGE("%s: Normal camera ID %d higher than strange camera ID %d. "
++                    "This is not allowed due backward-compatibility requirements",
++                    __FUNCTION__, id, *latestStrangeCameraId);
++            logServiceError("Invalid order of camera devices", NO_INIT);
++            mNumberOfCameras = 0;
++            mNumberOfNormalCameras = 0;
++            return NO_INIT;
++        }
++    }
++    return OK;
++}
++
+ std::shared_ptr<CameraService::CameraState> CameraService::getCameraState(
+         const String8& cameraId) const {
+     std::shared_ptr<CameraState> state;
+@@ -2547,13 +2854,61 @@ status_t CameraService::dump(int fd, const Vector<String16>& args) {
+                     cameraId.string());
+         }
+ 
++        if (mModule != nullptr) {
++            dprintf(fd, "== Camera HAL device %s static information: ==\n", cameraId.string());
++
++            camera_info info;
++            status_t rc = mModule->getCameraInfo(cameraIdToInt(cameraId), &info);
++            int deviceVersion = -1;
++            if (rc != OK) {
++                dprintf(fd, "  Error reading static information!\n");
++            } else {
++                dprintf(fd, "  Facing: %s\n",
++                        info.facing == CAMERA_FACING_BACK ? "BACK" :
++                        info.facing == CAMERA_FACING_FRONT ? "FRONT" : "EXTERNAL");
++                dprintf(fd, "  Orientation: %d\n", info.orientation);
++
++                if (mModule->getModuleApiVersion() < CAMERA_MODULE_API_VERSION_2_0) {
++                    deviceVersion = CAMERA_DEVICE_API_VERSION_1_0;
++                } else {
++                    deviceVersion = info.device_version;
++                }
++            }
++
++            auto conflicting = state.second->getConflicting();
++            dprintf(fd, "  Resource Cost: %d\n", state.second->getCost());
++            dprintf(fd, "  Conflicting Devices:");
++            for (auto& id : conflicting) {
++                dprintf(fd, " %s", id.string());
++            }
++            if (conflicting.size() == 0) {
++                dprintf(fd, " NONE");
++            }
++            dprintf(fd, "\n");
++
++            dprintf(fd, "  Device version: %#x\n", deviceVersion);
++            if (deviceVersion >= CAMERA_DEVICE_API_VERSION_3_0) {
++                dprintf(fd, "  Device static metadata:\n");
++                dump_indented_camera_metadata(info.static_camera_characteristics,
++                        fd, /*verbosity*/2, /*indentation*/4);
++            }
++        }
++
+     }
+ 
+     if (stateLocked) mCameraStatesLock.unlock();
+ 
+     if (locked) mServiceLock.unlock();
+ 
+-    mCameraProviderManager->dump(fd, args);
++    if (mModule == nullptr) {
++        mCameraProviderManager->dump(fd, args);
++    } else {
++        dprintf(fd, "\n== Camera Module HAL static info: ==\n");
++        dprintf(fd, "Camera module HAL API version: 0x%x\n", mModule->getHalApiVersion());
++        dprintf(fd, "Camera module API version: 0x%x\n", mModule->getModuleApiVersion());
++        dprintf(fd, "Camera module name: %s\n", mModule->getModuleName());
++        dprintf(fd, "Camera module author: %s\n", mModule->getModuleAuthor());
++    }
+ 
+     dprintf(fd, "\n== Vendor tags: ==\n\n");
+ 
+diff --git a/services/camera/libcameraservice/CameraService.h b/services/camera/libcameraservice/CameraService.h
+index 6d5dde89d..12ba641af 100644
+--- a/services/camera/libcameraservice/CameraService.h
++++ b/services/camera/libcameraservice/CameraService.h
+@@ -37,6 +37,7 @@
+ 
+ #include "CameraFlashlight.h"
+ 
++#include "common/CameraModule.h"
+ #include "common/CameraProviderManager.h"
+ #include "media/RingBuffer.h"
+ #include "utils/AutoConditionLock.h"
+@@ -200,6 +201,7 @@ public:
+ 
+     class BasicClient : public virtual RefBase {
+     public:
++        virtual status_t       initialize(CameraModule *module) = 0;
+         virtual status_t       initialize(sp<CameraProviderManager> manager) = 0;
+         virtual binder::Status disconnect();
+ 
+@@ -509,6 +511,9 @@ private:
+     // Delay-load the Camera HAL module
+     virtual void onFirstRef();
+ 
++    // Load the legacy HAL module
++    status_t loadLegacyHalModule();
++
+     // Eumerate all camera providers in the system
+     status_t enumerateProviders();
+ 
+@@ -566,6 +571,11 @@ private:
+     std::set<userid_t> mAllowedUsers;
+ 
+     /**
++     * Check camera capabilities, such as support for basic color operation
++     */
++    int checkCameraCapabilities(int id, camera_info info, int *latestStrangeCameraId);
++
++    /**
+      * Get the camera state for a given camera id.
+      *
+      * This acquires mCameraStatesLock.
+@@ -680,6 +690,7 @@ private:
+     // Basic flag on whether the camera subsystem is in a usable state
+     bool                mInitialized;
+ 
++    CameraModule*       mModule;
+     sp<CameraProviderManager> mCameraProviderManager;
+ 
+     // Guarded by mStatusListenerMutex
+@@ -737,6 +748,10 @@ private:
+     // IBinder::DeathRecipient implementation
+     virtual void        binderDied(const wp<IBinder> &who);
+ 
++    // Helpers
++
++    bool                setUpVendorTags();
++
+     /**
+      * Initialize and cache the metadata used by the HAL1 shim for a given cameraId.
+      *
+diff --git a/services/camera/libcameraservice/api1/Camera2Client.cpp b/services/camera/libcameraservice/api1/Camera2Client.cpp
+index 585d2ebd5..92c6cc841 100644
+--- a/services/camera/libcameraservice/api1/Camera2Client.cpp
++++ b/services/camera/libcameraservice/api1/Camera2Client.cpp
+@@ -68,6 +68,10 @@ Camera2Client::Camera2Client(const sp<CameraService>& cameraService,
+     mLegacyMode = legacyMode;
+ }
+ 
++status_t Camera2Client::initialize(CameraModule *module) {
++    return initializeImpl(module);
++}
++
+ status_t Camera2Client::initialize(sp<CameraProviderManager> manager) {
+     return initializeImpl(manager);
+ }
+diff --git a/services/camera/libcameraservice/api1/Camera2Client.h b/services/camera/libcameraservice/api1/Camera2Client.h
+index 5af74eb15..3fa4f3393 100644
+--- a/services/camera/libcameraservice/api1/Camera2Client.h
++++ b/services/camera/libcameraservice/api1/Camera2Client.h
+@@ -100,6 +100,7 @@ public:
+ 
+     virtual ~Camera2Client();
+ 
++    virtual status_t initialize(CameraModule *module) override;
+     virtual status_t initialize(sp<CameraProviderManager> manager) override;
+ 
+     virtual status_t dump(int fd, const Vector<String16>& args);
+diff --git a/services/camera/libcameraservice/api1/CameraClient.cpp b/services/camera/libcameraservice/api1/CameraClient.cpp
+index f84c13fe3..cb21acc62 100644
+--- a/services/camera/libcameraservice/api1/CameraClient.cpp
++++ b/services/camera/libcameraservice/api1/CameraClient.cpp
+@@ -62,7 +62,16 @@ CameraClient::CameraClient(const sp<CameraService>& cameraService,
+     LOG1("CameraClient::CameraClient X (pid %d, id %d)", callingPid, cameraId);
+ }
+ 
++status_t CameraClient::initialize(CameraModule *module) {
++    return initializeImpl<CameraModule*>(module);
++}
++
+ status_t CameraClient::initialize(sp<CameraProviderManager> manager) {
++    return initializeImpl<sp<CameraProviderManager>>(manager);
++}
++
++template<typename TProviderPtr>
++status_t CameraClient::initializeImpl(TProviderPtr providerPtr) {
+     int callingPid = getCallingPid();
+     status_t res;
+ 
+@@ -78,7 +87,7 @@ status_t CameraClient::initialize(sp<CameraProviderManager> manager) {
+     snprintf(camera_device_name, sizeof(camera_device_name), "%d", mCameraId);
+ 
+     mHardware = new CameraHardwareInterface(camera_device_name);
+-    res = mHardware->initialize(manager);
++    res = mHardware->initialize(providerPtr);
+     if (res != OK) {
+         ALOGE("%s: Camera %d: unable to initialize device: %s (%d)",
+                 __FUNCTION__, mCameraId, strerror(-res), res);
+diff --git a/services/camera/libcameraservice/api1/CameraClient.h b/services/camera/libcameraservice/api1/CameraClient.h
+index 7f93fef93..107338444 100644
+--- a/services/camera/libcameraservice/api1/CameraClient.h
++++ b/services/camera/libcameraservice/api1/CameraClient.h
+@@ -72,6 +72,7 @@ public:
+             bool legacyMode = false);
+     ~CameraClient();
+ 
++    virtual status_t initialize(CameraModule *module) override;
+     virtual status_t initialize(sp<CameraProviderManager> manager) override;
+ 
+     virtual status_t dump(int fd, const Vector<String16>& args);
+@@ -80,6 +81,9 @@ public:
+ 
+ private:
+ 
++    template<typename TProviderPtr>
++    status_t initializeImpl(TProviderPtr providerPtr);
++
+     // check whether the calling process matches mClientPid.
+     status_t                checkPid() const;
+     status_t                checkPidAndHardware() const;  // also check mHardware != 0
+diff --git a/services/camera/libcameraservice/api2/CameraDeviceClient.cpp b/services/camera/libcameraservice/api2/CameraDeviceClient.cpp
+index c03e8a24f..4ff0d3683 100644
+--- a/services/camera/libcameraservice/api2/CameraDeviceClient.cpp
++++ b/services/camera/libcameraservice/api2/CameraDeviceClient.cpp
+@@ -82,6 +82,10 @@ CameraDeviceClient::CameraDeviceClient(const sp<CameraService>& cameraService,
+     ALOGI("CameraDeviceClient %s: Opened", cameraId.string());
+ }
+ 
++status_t CameraDeviceClient::initialize(CameraModule *module) {
++    return initializeImpl(module);
++}
++
+ status_t CameraDeviceClient::initialize(sp<CameraProviderManager> manager) {
+     return initializeImpl(manager);
+ }
+diff --git a/services/camera/libcameraservice/api2/CameraDeviceClient.h b/services/camera/libcameraservice/api2/CameraDeviceClient.h
+index 50661cb5b..f503165ad 100644
+--- a/services/camera/libcameraservice/api2/CameraDeviceClient.h
++++ b/services/camera/libcameraservice/api2/CameraDeviceClient.h
+@@ -149,6 +149,7 @@ public:
+             int servicePid);
+     virtual ~CameraDeviceClient();
+ 
++    virtual status_t      initialize(CameraModule *module) override;
+     virtual status_t      initialize(sp<CameraProviderManager> manager) override;
+ 
+     virtual status_t      dump(int fd, const Vector<String16>& args);
+diff --git a/services/camera/libcameraservice/common/Camera2ClientBase.cpp b/services/camera/libcameraservice/common/Camera2ClientBase.cpp
+index 51ef1609a..89fb37d44 100644
+--- a/services/camera/libcameraservice/common/Camera2ClientBase.cpp
++++ b/services/camera/libcameraservice/common/Camera2ClientBase.cpp
+@@ -79,6 +79,11 @@ status_t Camera2ClientBase<TClientBase>::checkPid(const char* checkLocation)
+ }
+ 
+ template <typename TClientBase>
++status_t Camera2ClientBase<TClientBase>::initialize(CameraModule *module) {
++    return initializeImpl(module);
++}
++
++template <typename TClientBase>
+ status_t Camera2ClientBase<TClientBase>::initialize(sp<CameraProviderManager> manager) {
+     return initializeImpl(manager);
+ }
+diff --git a/services/camera/libcameraservice/common/Camera2ClientBase.h b/services/camera/libcameraservice/common/Camera2ClientBase.h
+index e898d5dd1..a4c08efa6 100644
+--- a/services/camera/libcameraservice/common/Camera2ClientBase.h
++++ b/services/camera/libcameraservice/common/Camera2ClientBase.h
+@@ -18,6 +18,7 @@
+ #define ANDROID_SERVERS_CAMERA_CAMERA2CLIENT_BASE_H
+ 
+ #include "common/CameraDeviceBase.h"
++#include "common/CameraModule.h"
+ #include "camera/CaptureResult.h"
+ 
+ namespace android {
+@@ -55,6 +56,7 @@ public:
+                       int servicePid);
+     virtual ~Camera2ClientBase();
+ 
++    virtual status_t      initialize(CameraModule *module);
+     virtual status_t      initialize(sp<CameraProviderManager> manager);
+     virtual status_t      dumpClient(int fd, const Vector<String16>& args);
+ 
+diff --git a/services/camera/libcameraservice/common/CameraDeviceBase.h b/services/camera/libcameraservice/common/CameraDeviceBase.h
+index a90050e1b..b79d84355 100644
+--- a/services/camera/libcameraservice/common/CameraDeviceBase.h
++++ b/services/camera/libcameraservice/common/CameraDeviceBase.h
+@@ -30,6 +30,7 @@
+ #include "hardware/camera3.h"
+ #include "camera/CameraMetadata.h"
+ #include "camera/CaptureResult.h"
++#include "common/CameraModule.h"
+ #include "gui/IGraphicBufferProducer.h"
+ #include "device3/Camera3StreamInterface.h"
+ #include "binder/Status.h"
+@@ -54,6 +55,7 @@ class CameraDeviceBase : public virtual RefBase {
+      */
+     virtual const String8& getId() const = 0;
+ 
++    virtual status_t initialize(CameraModule *module) = 0;
+     virtual status_t initialize(sp<CameraProviderManager> manager) = 0;
+     virtual status_t disconnect() = 0;
+ 
+diff --git a/services/camera/libcameraservice/common/CameraModule.cpp b/services/camera/libcameraservice/common/CameraModule.cpp
+new file mode 100644
+index 000000000..073144c4a
+--- /dev/null
++++ b/services/camera/libcameraservice/common/CameraModule.cpp
+@@ -0,0 +1,403 @@
++/*
++ * Copyright (C) 2015 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#define LOG_TAG "CameraModule"
++#define ATRACE_TAG ATRACE_TAG_CAMERA
++//#define LOG_NDEBUG 0
++
++#include <utils/Trace.h>
++
++#include "CameraModule.h"
++
++namespace android {
++
++void CameraModule::deriveCameraCharacteristicsKeys(
++        uint32_t deviceVersion, CameraMetadata &chars) {
++    ATRACE_CALL();
++
++    Vector<int32_t> derivedCharKeys;
++    Vector<int32_t> derivedRequestKeys;
++    Vector<int32_t> derivedResultKeys;
++    // Keys added in HAL3.3
++    if (deviceVersion < CAMERA_DEVICE_API_VERSION_3_3) {
++        Vector<uint8_t> controlModes;
++        uint8_t data = ANDROID_CONTROL_AE_LOCK_AVAILABLE_TRUE;
++        chars.update(ANDROID_CONTROL_AE_LOCK_AVAILABLE, &data, /*count*/1);
++        data = ANDROID_CONTROL_AWB_LOCK_AVAILABLE_TRUE;
++        chars.update(ANDROID_CONTROL_AWB_LOCK_AVAILABLE, &data, /*count*/1);
++        controlModes.push(ANDROID_CONTROL_MODE_AUTO);
++        camera_metadata_entry entry = chars.find(ANDROID_CONTROL_AVAILABLE_SCENE_MODES);
++        if (entry.count > 1 || entry.data.u8[0] != ANDROID_CONTROL_SCENE_MODE_DISABLED) {
++            controlModes.push(ANDROID_CONTROL_MODE_USE_SCENE_MODE);
++        }
++
++        // Only advertise CONTROL_OFF mode if 3A manual controls are supported.
++        bool isManualAeSupported = false;
++        bool isManualAfSupported = false;
++        bool isManualAwbSupported = false;
++        entry = chars.find(ANDROID_CONTROL_AE_AVAILABLE_MODES);
++        if (entry.count > 0) {
++            for (size_t i = 0; i < entry.count; i++) {
++                if (entry.data.u8[i] == ANDROID_CONTROL_AE_MODE_OFF) {
++                    isManualAeSupported = true;
++                    break;
++                }
++            }
++        }
++        entry = chars.find(ANDROID_CONTROL_AF_AVAILABLE_MODES);
++        if (entry.count > 0) {
++            for (size_t i = 0; i < entry.count; i++) {
++                if (entry.data.u8[i] == ANDROID_CONTROL_AF_MODE_OFF) {
++                    isManualAfSupported = true;
++                    break;
++                }
++            }
++        }
++        entry = chars.find(ANDROID_CONTROL_AWB_AVAILABLE_MODES);
++        if (entry.count > 0) {
++            for (size_t i = 0; i < entry.count; i++) {
++                if (entry.data.u8[i] == ANDROID_CONTROL_AWB_MODE_OFF) {
++                    isManualAwbSupported = true;
++                    break;
++                }
++            }
++        }
++        if (isManualAeSupported && isManualAfSupported && isManualAwbSupported) {
++            controlModes.push(ANDROID_CONTROL_MODE_OFF);
++        }
++
++        chars.update(ANDROID_CONTROL_AVAILABLE_MODES, controlModes);
++
++        entry = chars.find(ANDROID_REQUEST_AVAILABLE_REQUEST_KEYS);
++        // HAL3.2 devices passing existing CTS test should all support all LSC modes and LSC map
++        bool lensShadingModeSupported = false;
++        if (entry.count > 0) {
++            for (size_t i = 0; i < entry.count; i++) {
++                if (entry.data.i32[i] == ANDROID_SHADING_MODE) {
++                    lensShadingModeSupported = true;
++                    break;
++                }
++            }
++        }
++        Vector<uint8_t> lscModes;
++        Vector<uint8_t> lscMapModes;
++        lscModes.push(ANDROID_SHADING_MODE_FAST);
++        lscModes.push(ANDROID_SHADING_MODE_HIGH_QUALITY);
++        lscMapModes.push(ANDROID_STATISTICS_LENS_SHADING_MAP_MODE_OFF);
++        if (lensShadingModeSupported) {
++            lscModes.push(ANDROID_SHADING_MODE_OFF);
++            lscMapModes.push(ANDROID_STATISTICS_LENS_SHADING_MAP_MODE_ON);
++        }
++        chars.update(ANDROID_SHADING_AVAILABLE_MODES, lscModes);
++        chars.update(ANDROID_STATISTICS_INFO_AVAILABLE_LENS_SHADING_MAP_MODES, lscMapModes);
++
++        derivedCharKeys.push(ANDROID_CONTROL_AE_LOCK_AVAILABLE);
++        derivedCharKeys.push(ANDROID_CONTROL_AWB_LOCK_AVAILABLE);
++        derivedCharKeys.push(ANDROID_CONTROL_AVAILABLE_MODES);
++        derivedCharKeys.push(ANDROID_SHADING_AVAILABLE_MODES);
++        derivedCharKeys.push(ANDROID_STATISTICS_INFO_AVAILABLE_LENS_SHADING_MAP_MODES);
++
++        // Need update android.control.availableHighSpeedVideoConfigurations since HAL3.3
++        // adds batch size to this array.
++        entry = chars.find(ANDROID_CONTROL_AVAILABLE_HIGH_SPEED_VIDEO_CONFIGURATIONS);
++        if (entry.count > 0) {
++            Vector<int32_t> highSpeedConfig;
++            for (size_t i = 0; i < entry.count; i += 4) {
++                highSpeedConfig.add(entry.data.i32[i]); // width
++                highSpeedConfig.add(entry.data.i32[i + 1]); // height
++                highSpeedConfig.add(entry.data.i32[i + 2]); // fps_min
++                highSpeedConfig.add(entry.data.i32[i + 3]); // fps_max
++                highSpeedConfig.add(1); // batchSize_max. default to 1 for HAL3.2
++            }
++            chars.update(ANDROID_CONTROL_AVAILABLE_HIGH_SPEED_VIDEO_CONFIGURATIONS,
++                    highSpeedConfig);
++        }
++    }
++
++    // Keys added in HAL3.4
++    if (deviceVersion < CAMERA_DEVICE_API_VERSION_3_4) {
++        // Check if HAL supports RAW_OPAQUE output
++        camera_metadata_entry entry = chars.find(ANDROID_SCALER_AVAILABLE_STREAM_CONFIGURATIONS);
++        bool supportRawOpaque = false;
++        bool supportAnyRaw = false;
++        const int STREAM_CONFIGURATION_SIZE = 4;
++        const int STREAM_FORMAT_OFFSET = 0;
++        const int STREAM_WIDTH_OFFSET = 1;
++        const int STREAM_HEIGHT_OFFSET = 2;
++        const int STREAM_IS_INPUT_OFFSET = 3;
++        Vector<int32_t> rawOpaqueSizes;
++
++        for (size_t i=0; i < entry.count; i += STREAM_CONFIGURATION_SIZE) {
++            int32_t format = entry.data.i32[i + STREAM_FORMAT_OFFSET];
++            int32_t width = entry.data.i32[i + STREAM_WIDTH_OFFSET];
++            int32_t height = entry.data.i32[i + STREAM_HEIGHT_OFFSET];
++            int32_t isInput = entry.data.i32[i + STREAM_IS_INPUT_OFFSET];
++            if (isInput == ANDROID_SCALER_AVAILABLE_STREAM_CONFIGURATIONS_OUTPUT &&
++                    format == HAL_PIXEL_FORMAT_RAW_OPAQUE) {
++                supportRawOpaque = true;
++                rawOpaqueSizes.push(width);
++                rawOpaqueSizes.push(height);
++                // 2 bytes per pixel. This rough estimation is only used when
++                // HAL does not fill in the opaque raw size
++                rawOpaqueSizes.push(width * height *2);
++            }
++            if (isInput == ANDROID_SCALER_AVAILABLE_STREAM_CONFIGURATIONS_OUTPUT &&
++                    (format == HAL_PIXEL_FORMAT_RAW16 ||
++                     format == HAL_PIXEL_FORMAT_RAW10 ||
++                     format == HAL_PIXEL_FORMAT_RAW12 ||
++                     format == HAL_PIXEL_FORMAT_RAW_OPAQUE)) {
++                supportAnyRaw = true;
++            }
++        }
++
++        if (supportRawOpaque) {
++            entry = chars.find(ANDROID_SENSOR_OPAQUE_RAW_SIZE);
++            if (entry.count == 0) {
++                // Fill in estimated value if HAL does not list it
++                chars.update(ANDROID_SENSOR_OPAQUE_RAW_SIZE, rawOpaqueSizes);
++                derivedCharKeys.push(ANDROID_SENSOR_OPAQUE_RAW_SIZE);
++            }
++        }
++
++        // Check if HAL supports any RAW output, if so, fill in postRawSensitivityBoost range
++        if (supportAnyRaw) {
++            int32_t defaultRange[2] = {100, 100};
++            entry = chars.find(ANDROID_CONTROL_POST_RAW_SENSITIVITY_BOOST_RANGE);
++            if (entry.count == 0) {
++                // Fill in default value (100, 100)
++                chars.update(
++                        ANDROID_CONTROL_POST_RAW_SENSITIVITY_BOOST_RANGE,
++                        defaultRange, 2);
++                derivedCharKeys.push(ANDROID_CONTROL_POST_RAW_SENSITIVITY_BOOST_RANGE);
++                // Actual request/results will be derived by camera device.
++                derivedRequestKeys.push(ANDROID_CONTROL_POST_RAW_SENSITIVITY_BOOST);
++                derivedResultKeys.push(ANDROID_CONTROL_POST_RAW_SENSITIVITY_BOOST);
++            }
++        }
++    }
++
++    // Always add a default for the pre-correction active array if the vendor chooses to omit this
++    camera_metadata_entry entry = chars.find(ANDROID_SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE);
++    if (entry.count == 0) {
++        Vector<int32_t> preCorrectionArray;
++        entry = chars.find(ANDROID_SENSOR_INFO_ACTIVE_ARRAY_SIZE);
++        preCorrectionArray.appendArray(entry.data.i32, entry.count);
++        chars.update(ANDROID_SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE, preCorrectionArray);
++        derivedCharKeys.push(ANDROID_SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE);
++    }
++
++    // Add those newly added keys to AVAILABLE_CHARACTERISTICS_KEYS
++    // This has to be done at this end of this function.
++    if (derivedCharKeys.size() > 0) {
++        appendAvailableKeys(
++                chars, ANDROID_REQUEST_AVAILABLE_CHARACTERISTICS_KEYS, derivedCharKeys);
++    }
++    if (derivedRequestKeys.size() > 0) {
++        appendAvailableKeys(
++                chars, ANDROID_REQUEST_AVAILABLE_REQUEST_KEYS, derivedRequestKeys);
++    }
++    if (derivedResultKeys.size() > 0) {
++        appendAvailableKeys(
++                chars, ANDROID_REQUEST_AVAILABLE_RESULT_KEYS, derivedResultKeys);
++    }
++    return;
++}
++
++void CameraModule::appendAvailableKeys(CameraMetadata &chars,
++        int32_t keyTag, const Vector<int32_t>& appendKeys) {
++    camera_metadata_entry entry = chars.find(keyTag);
++    Vector<int32_t> availableKeys;
++    availableKeys.setCapacity(entry.count + appendKeys.size());
++    for (size_t i = 0; i < entry.count; i++) {
++        availableKeys.push(entry.data.i32[i]);
++    }
++    for (size_t i = 0; i < appendKeys.size(); i++) {
++        availableKeys.push(appendKeys[i]);
++    }
++    chars.update(keyTag, availableKeys);
++}
++
++CameraModule::CameraModule(camera_module_t *module) {
++    if (module == NULL) {
++        ALOGE("%s: camera hardware module must not be null", __FUNCTION__);
++        assert(0);
++    }
++    mModule = module;
++}
++
++CameraModule::~CameraModule()
++{
++    while (mCameraInfoMap.size() > 0) {
++        camera_info cameraInfo = mCameraInfoMap.editValueAt(0);
++        if (cameraInfo.static_camera_characteristics != NULL) {
++            free_camera_metadata(
++                    const_cast<camera_metadata_t*>(cameraInfo.static_camera_characteristics));
++        }
++        mCameraInfoMap.removeItemsAt(0);
++    }
++}
++
++int CameraModule::init() {
++    ATRACE_CALL();
++    int res = OK;
++    if (getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_4 &&
++            mModule->init != NULL) {
++        ATRACE_BEGIN("camera_module->init");
++        res = mModule->init();
++        ATRACE_END();
++    }
++    mCameraInfoMap.setCapacity(getNumberOfCameras());
++    return res;
++}
++
++int CameraModule::getCameraInfo(int cameraId, struct camera_info *info) {
++    ATRACE_CALL();
++    Mutex::Autolock lock(mCameraInfoLock);
++    if (cameraId < 0) {
++        ALOGE("%s: Invalid camera ID %d", __FUNCTION__, cameraId);
++        return -EINVAL;
++    }
++
++    // Only override static_camera_characteristics for API2 devices
++    int apiVersion = mModule->common.module_api_version;
++    if (apiVersion < CAMERA_MODULE_API_VERSION_2_0) {
++        int ret;
++        ATRACE_BEGIN("camera_module->get_camera_info");
++        ret = mModule->get_camera_info(cameraId, info);
++        // Fill in this so CameraService won't be confused by
++        // possibly 0 device_version
++        info->device_version = CAMERA_DEVICE_API_VERSION_1_0;
++        ATRACE_END();
++        return ret;
++    }
++
++    ssize_t index = mCameraInfoMap.indexOfKey(cameraId);
++    if (index == NAME_NOT_FOUND) {
++        // Get camera info from raw module and cache it
++        camera_info rawInfo, cameraInfo;
++        ATRACE_BEGIN("camera_module->get_camera_info");
++        int ret = mModule->get_camera_info(cameraId, &rawInfo);
++        ATRACE_END();
++        if (ret != 0) {
++            return ret;
++        }
++        int deviceVersion = rawInfo.device_version;
++        if (deviceVersion < CAMERA_DEVICE_API_VERSION_3_0) {
++            // static_camera_characteristics is invalid
++            *info = rawInfo;
++            return ret;
++        }
++        CameraMetadata m;
++        m = rawInfo.static_camera_characteristics;
++        deriveCameraCharacteristicsKeys(rawInfo.device_version, m);
++        cameraInfo = rawInfo;
++        cameraInfo.static_camera_characteristics = m.release();
++        index = mCameraInfoMap.add(cameraId, cameraInfo);
++    }
++
++    assert(index != NAME_NOT_FOUND);
++    // return the cached camera info
++    *info = mCameraInfoMap[index];
++    return OK;
++}
++
++int CameraModule::open(const char* id, struct hw_device_t** device) {
++    int res;
++    ATRACE_BEGIN("camera_module->open");
++    res = filterOpenErrorCode(mModule->common.methods->open(&mModule->common, id, device));
++    ATRACE_END();
++    return res;
++}
++
++int CameraModule::openLegacy(
++        const char* id, uint32_t halVersion, struct hw_device_t** device) {
++    int res;
++    ATRACE_BEGIN("camera_module->open_legacy");
++    res = mModule->open_legacy(&mModule->common, id, halVersion, device);
++    ATRACE_END();
++    return res;
++}
++
++int CameraModule::getNumberOfCameras() {
++    int numCameras;
++    ATRACE_BEGIN("camera_module->get_number_of_cameras");
++    numCameras = mModule->get_number_of_cameras();
++    ATRACE_END();
++    return numCameras;
++}
++
++int CameraModule::setCallbacks(const camera_module_callbacks_t *callbacks) {
++    int res;
++    ATRACE_BEGIN("camera_module->set_callbacks");
++    res = mModule->set_callbacks(callbacks);
++    ATRACE_END();
++    return res;
++}
++
++bool CameraModule::isVendorTagDefined() {
++    return mModule->get_vendor_tag_ops != NULL;
++}
++
++void CameraModule::getVendorTagOps(vendor_tag_ops_t* ops) {
++    if (mModule->get_vendor_tag_ops) {
++        ATRACE_BEGIN("camera_module->get_vendor_tag_ops");
++        mModule->get_vendor_tag_ops(ops);
++        ATRACE_END();
++    }
++}
++
++int CameraModule::setTorchMode(const char* camera_id, bool enable) {
++    int res;
++    ATRACE_BEGIN("camera_module->set_torch_mode");
++    res = mModule->set_torch_mode(camera_id, enable);
++    ATRACE_END();
++    return res;
++}
++
++status_t CameraModule::filterOpenErrorCode(status_t err) {
++    switch(err) {
++        case NO_ERROR:
++        case -EBUSY:
++        case -EINVAL:
++        case -EUSERS:
++            return err;
++        default:
++            break;
++    }
++    return -ENODEV;
++}
++
++uint16_t CameraModule::getModuleApiVersion() {
++    return mModule->common.module_api_version;
++}
++
++const char* CameraModule::getModuleName() {
++    return mModule->common.name;
++}
++
++uint16_t CameraModule::getHalApiVersion() {
++    return mModule->common.hal_api_version;
++}
++
++const char* CameraModule::getModuleAuthor() {
++    return mModule->common.author;
++}
++
++void* CameraModule::getDso() {
++    return mModule->common.dso;
++}
++
++}; // namespace android
+diff --git a/services/camera/libcameraservice/common/CameraModule.h b/services/camera/libcameraservice/common/CameraModule.h
+new file mode 100644
+index 000000000..d131a2664
+--- /dev/null
++++ b/services/camera/libcameraservice/common/CameraModule.h
+@@ -0,0 +1,71 @@
++/*
++ * Copyright (C) 2015 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef ANDROID_SERVERS_CAMERA_CAMERAMODULE_H
++#define ANDROID_SERVERS_CAMERA_CAMERAMODULE_H
++
++#include <hardware/camera.h>
++#include <camera/CameraMetadata.h>
++#include <utils/Mutex.h>
++#include <utils/KeyedVector.h>
++
++namespace android {
++/**
++ * A wrapper class for HAL camera module.
++ *
++ * This class wraps camera_module_t returned from HAL to provide a wrapped
++ * get_camera_info implementation which CameraService generates some
++ * camera characteristics keys defined in newer HAL version on an older HAL.
++ */
++class CameraModule {
++public:
++    explicit CameraModule(camera_module_t *module);
++    virtual ~CameraModule();
++
++    // Must be called after construction
++    // Returns OK on success, NO_INIT on failure
++    int init();
++
++    int getCameraInfo(int cameraId, struct camera_info *info);
++    int getNumberOfCameras(void);
++    int open(const char* id, struct hw_device_t** device);
++    int openLegacy(const char* id, uint32_t halVersion, struct hw_device_t** device);
++    int setCallbacks(const camera_module_callbacks_t *callbacks);
++    bool isVendorTagDefined();
++    void getVendorTagOps(vendor_tag_ops_t* ops);
++    int setTorchMode(const char* camera_id, bool enable);
++    uint16_t getModuleApiVersion();
++    const char* getModuleName();
++    uint16_t getHalApiVersion();
++    const char* getModuleAuthor();
++    // Only used by CameraModuleFixture native test. Do NOT use elsewhere.
++    void *getDso();
++
++private:
++    // Derive camera characteristics keys defined after HAL device version
++    static void deriveCameraCharacteristicsKeys(uint32_t deviceVersion, CameraMetadata &chars);
++    // Helper function to append available[request|result|chars]Keys
++    static void appendAvailableKeys(CameraMetadata &chars,
++            int32_t keyTag, const Vector<int32_t>& appendKeys);
++    status_t filterOpenErrorCode(status_t err);
++    camera_module_t *mModule;
++    KeyedVector<int, camera_info> mCameraInfoMap;
++    Mutex mCameraInfoLock;
++};
++
++} // namespace android
++
++#endif
+diff --git a/services/camera/libcameraservice/common/CameraProviderManager.cpp b/services/camera/libcameraservice/common/CameraProviderManager.cpp
+index e6a6a210f..93d0b3796 100644
+--- a/services/camera/libcameraservice/common/CameraProviderManager.cpp
++++ b/services/camera/libcameraservice/common/CameraProviderManager.cpp
+@@ -82,12 +82,12 @@ int CameraProviderManager::getCameraCount() const {
+     return count;
+ }
+ 
+-int CameraProviderManager::getAPI1CompatibleCameraCount() const {
++int CameraProviderManager::getStandardCameraCount() const {
+     std::lock_guard<std::mutex> lock(mInterfaceMutex);
+     int count = 0;
+     for (auto& provider : mProviders) {
+         if (kStandardProviderTypes.find(provider->getType()) != std::string::npos) {
+-            count += provider->mUniqueAPI1CompatibleCameraIds.size();
++            count += provider->mUniqueDeviceCount;
+         }
+     }
+     return count;
+@@ -104,12 +104,12 @@ std::vector<std::string> CameraProviderManager::getCameraDeviceIds() const {
+     return deviceIds;
+ }
+ 
+-std::vector<std::string> CameraProviderManager::getAPI1CompatibleCameraDeviceIds() const {
++std::vector<std::string> CameraProviderManager::getStandardCameraDeviceIds() const {
+     std::lock_guard<std::mutex> lock(mInterfaceMutex);
+     std::vector<std::string> deviceIds;
+     for (auto& provider : mProviders) {
+         if (kStandardProviderTypes.find(provider->getType()) != std::string::npos) {
+-            for (auto& id : provider->mUniqueAPI1CompatibleCameraIds) {
++            for (auto& id : provider->mUniqueCameraIds) {
+                 deviceIds.push_back(id);
+             }
+         }
+@@ -536,9 +536,7 @@ status_t CameraProviderManager::ProviderInfo::initialize() {
+ 
+     for (auto& device : mDevices) {
+         mUniqueCameraIds.insert(device->mId);
+-        if (device->isAPI1Compatible()) {
+             mUniqueAPI1CompatibleCameraIds.insert(device->mId);
+-        }
+     }
+     mUniqueDeviceCount = mUniqueCameraIds.size();
+ 
+@@ -996,20 +994,6 @@ status_t CameraProviderManager::ProviderInfo::DeviceInfo3::getCameraInfo(
+ 
+     return OK;
+ }
+-bool CameraProviderManager::ProviderInfo::DeviceInfo3::isAPI1Compatible() const {
+-    bool isBackwardCompatible = false;
+-    camera_metadata_ro_entry_t caps = mCameraCharacteristics.find(
+-            ANDROID_REQUEST_AVAILABLE_CAPABILITIES);
+-    for (size_t i = 0; i < caps.count; i++) {
+-        if (caps.data.u8[i] ==
+-                ANDROID_REQUEST_AVAILABLE_CAPABILITIES_BACKWARD_COMPATIBLE) {
+-            isBackwardCompatible = true;
+-            break;
+-        }
+-    }
+-
+-    return isBackwardCompatible;
+-}
+ 
+ status_t CameraProviderManager::ProviderInfo::DeviceInfo3::getCameraCharacteristics(
+         CameraMetadata *characteristics) const {
+diff --git a/services/camera/libcameraservice/common/CameraProviderManager.h b/services/camera/libcameraservice/common/CameraProviderManager.h
+index e82282fed..de7b4aba2 100644
+--- a/services/camera/libcameraservice/common/CameraProviderManager.h
++++ b/services/camera/libcameraservice/common/CameraProviderManager.h
+@@ -126,16 +126,16 @@ public:
+     int getCameraCount() const;
+ 
+     /**
+-     * Retrieve the number of API1 compatible cameras; these are internal and
++     * Retrieve the number of 'standard' cameras; these are internal and
+      * backwards-compatible. This is the set of cameras that will be
+      * accessible via the old camera API, with IDs in range of
+-     * [0, getAPI1CompatibleCameraCount()-1]. This value is not expected to change dynamically.
++     * [0, getStandardCameraCount()-1]. This value is not expected to change dynamically.
+      */
+-    int getAPI1CompatibleCameraCount() const;
++    int getStandardCameraCount() const;
+ 
+     std::vector<std::string> getCameraDeviceIds() const;
+ 
+-    std::vector<std::string> getAPI1CompatibleCameraDeviceIds() const;
++    std::vector<std::string> getStandardCameraDeviceIds() const;
+ 
+     /**
+      * Return true if a device with a given ID and major version exists
+@@ -292,7 +292,6 @@ private:
+             bool hasFlashUnit() const { return mHasFlashUnit; }
+             virtual status_t setTorchMode(bool enabled) = 0;
+             virtual status_t getCameraInfo(hardware::CameraInfo *info) const = 0;
+-            virtual bool isAPI1Compatible() const = 0;
+             virtual status_t getCameraCharacteristics(CameraMetadata *characteristics) const {
+                 (void) characteristics;
+                 return INVALID_OPERATION;
+@@ -324,8 +323,7 @@ private:
+ 
+             virtual status_t setTorchMode(bool enabled) override;
+             virtual status_t getCameraInfo(hardware::CameraInfo *info) const override;
+-            //In case of Device1Info assume that we are always API1 compatible
+-            virtual bool isAPI1Compatible() const override { return true; }
++
+             DeviceInfo1(const std::string& name, const metadata_vendor_id_t tagId,
+                     const std::string &id, uint16_t minorVersion,
+                     const hardware::camera::common::V1_0::CameraResourceCost& resourceCost,
+@@ -342,7 +340,6 @@ private:
+ 
+             virtual status_t setTorchMode(bool enabled) override;
+             virtual status_t getCameraInfo(hardware::CameraInfo *info) const override;
+-            virtual bool isAPI1Compatible() const override;
+             virtual status_t getCameraCharacteristics(
+                     CameraMetadata *characteristics) const override;
+ 
+diff --git a/services/camera/libcameraservice/device1/CameraHardwareInterface.cpp b/services/camera/libcameraservice/device1/CameraHardwareInterface.cpp
+index 522d521b5..82cb0f6b4 100644
+--- a/services/camera/libcameraservice/device1/CameraHardwareInterface.cpp
++++ b/services/camera/libcameraservice/device1/CameraHardwareInterface.cpp
+@@ -36,6 +36,37 @@ CameraHardwareInterface::~CameraHardwareInterface()
+     }
+ }
+ 
++status_t CameraHardwareInterface::initialize(CameraModule *module)
++{
++    if (mHidlDevice != nullptr) {
++        ALOGE("%s: camera hardware interface has been initialized to HIDL path!", __FUNCTION__);
++        return INVALID_OPERATION;
++    }
++    ALOGI("Opening camera %s", mName.string());
++    camera_info info;
++    status_t res = module->getCameraInfo(atoi(mName.string()), &info);
++    if (res != OK) {
++        return res;
++    }
++
++    int rc = OK;
++    if (module->getModuleApiVersion() >= CAMERA_MODULE_API_VERSION_2_3 &&
++        info.device_version > CAMERA_DEVICE_API_VERSION_1_0) {
++        // Open higher version camera device as HAL1.0 device.
++        rc = module->openLegacy(mName.string(),
++                                 CAMERA_DEVICE_API_VERSION_1_0,
++                                 (hw_device_t **)&mDevice);
++    } else {
++        rc = module->open(mName.string(), (hw_device_t **)&mDevice);
++    }
++    if (rc != OK) {
++        ALOGE("Could not open camera %s: %d", mName.string(), rc);
++        return rc;
++    }
++    initHalPreviewWindow();
++    return rc;
++}
++
+ status_t CameraHardwareInterface::initialize(sp<CameraProviderManager> manager) {
+     ALOGI("Opening camera %s", mName.string());
+ 
+diff --git a/services/camera/libcameraservice/device1/CameraHardwareInterface.h b/services/camera/libcameraservice/device1/CameraHardwareInterface.h
+index e519b04cd..a9bfd9b58 100644
+--- a/services/camera/libcameraservice/device1/CameraHardwareInterface.h
++++ b/services/camera/libcameraservice/device1/CameraHardwareInterface.h
+@@ -28,6 +28,7 @@
+ #include <system/window.h>
+ #include <hardware/camera.h>
+ 
++#include <common/CameraModule.h>
+ #include <common/CameraProviderManager.h>
+ 
+ namespace android {
+@@ -105,6 +106,7 @@ public:
+ 
+     ~CameraHardwareInterface();
+ 
++    status_t initialize(CameraModule *module);
+     status_t initialize(sp<CameraProviderManager> manager);
+ 
+     /** Set the ANativeWindow to which preview frames are sent */
+diff --git a/services/camera/libcameraservice/device3/Camera3Device.cpp b/services/camera/libcameraservice/device3/Camera3Device.cpp
+index a980cde23..8eba33401 100644
+--- a/services/camera/libcameraservice/device3/Camera3Device.cpp
++++ b/services/camera/libcameraservice/device3/Camera3Device.cpp
+@@ -94,6 +94,81 @@ const String8& Camera3Device::getId() const {
+     return mId;
+ }
+ 
++/**
++ * CameraDeviceBase interface
++ */
++
++status_t Camera3Device::initialize(CameraModule *module)
++{
++    ATRACE_CALL();
++    Mutex::Autolock il(mInterfaceLock);
++    Mutex::Autolock l(mLock);
++
++    ALOGV("%s: Initializing device for camera %s", __FUNCTION__, mId.string());
++    if (mStatus != STATUS_UNINITIALIZED) {
++        CLOGE("Already initialized!");
++        return INVALID_OPERATION;
++    }
++
++    /** Open HAL device */
++
++    status_t res;
++
++    camera3_device_t *device;
++
++    ATRACE_BEGIN("CameraHal::open");
++    res = module->open(mId.string(),
++            reinterpret_cast<hw_device_t**>(&device));
++    ATRACE_END();
++
++    if (res != OK) {
++        SET_ERR_L("Could not open camera: %s (%d)", strerror(-res), res);
++        return res;
++    }
++
++    /** Cross-check device version */
++    if (device->common.version < CAMERA_DEVICE_API_VERSION_3_2) {
++        SET_ERR_L("Could not open camera: "
++                "Camera device should be at least %x, reports %x instead",
++                CAMERA_DEVICE_API_VERSION_3_2,
++                device->common.version);
++        device->common.close(&device->common);
++        return BAD_VALUE;
++    }
++
++    camera_info info;
++    res = module->getCameraInfo(atoi(mId), &info);
++    if (res != OK) return res;
++
++    if (info.device_version != device->common.version) {
++        SET_ERR_L("HAL reporting mismatched camera_info version (%x)"
++                " and device version (%x).",
++                info.device_version, device->common.version);
++        device->common.close(&device->common);
++        return BAD_VALUE;
++    }
++
++    /** Initialize device with callback functions */
++
++    ATRACE_BEGIN("CameraHal::initialize");
++    res = device->ops->initialize(device, this);
++    ATRACE_END();
++
++    if (res != OK) {
++        SET_ERR_L("Unable to initialize HAL device: %s (%d)",
++                strerror(-res), res);
++        device->common.close(&device->common);
++        return res;
++    }
++
++    /** Everything is good to go */
++
++    mDeviceInfo = info.static_camera_characteristics;
++    mInterface = std::make_unique<HalInterface>(device);
++
++    return initializeCommonLocked();
++}
++
+ status_t Camera3Device::initialize(sp<CameraProviderManager> manager) {
+     ATRACE_CALL();
+     Mutex::Autolock il(mInterfaceLock);
+@@ -3074,6 +3149,9 @@ void Camera3Device::monitorMetadata(TagMonitor::eventSource source,
+  * HalInterface inner class methods
+  */
+ 
++Camera3Device::HalInterface::HalInterface(camera3_device_t *device) :
++        mHal3Device(device) {}
++
+ Camera3Device::HalInterface::HalInterface(
+             sp<ICameraDeviceSession> &session,
+             std::shared_ptr<RequestMetadataQueue> queue) :
+diff --git a/services/camera/libcameraservice/device3/Camera3Device.h b/services/camera/libcameraservice/device3/Camera3Device.h
+index 081af1978..6b8190e20 100644
+--- a/services/camera/libcameraservice/device3/Camera3Device.h
++++ b/services/camera/libcameraservice/device3/Camera3Device.h
+@@ -89,6 +89,7 @@ class Camera3Device :
+     const String8& getId() const override;
+ 
+     // Transitions to idle state on success.
++    status_t initialize(CameraModule *module) override;
+     status_t initialize(sp<CameraProviderManager> manager) override;
+     status_t disconnect() override;
+     status_t dump(int fd, const Vector<String16> &args) override;
+@@ -239,6 +240,7 @@ class Camera3Device :
+      */
+     class HalInterface : public camera3::Camera3StreamBufferFreedListener {
+       public:
++        HalInterface(camera3_device_t *device);
+         HalInterface(sp<hardware::camera::device::V3_2::ICameraDeviceSession> &session,
+                      std::shared_ptr<RequestMetadataQueue> queue);
+         HalInterface(const HalInterface &other);
+-- 
+2.13.6
+
