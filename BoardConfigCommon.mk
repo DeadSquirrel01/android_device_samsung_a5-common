@@ -196,6 +196,9 @@ TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
 # Ignore Dependencies
 ALLOW_MISSING_DEPENDENCIES := true
 
+# Keymaster
+TARGET_PROVIDES_KEYMASTER := true
+
 # Shims
 TARGET_LD_SHIM_LIBS := /system/lib/libcrypto.so|libboringssl-compat.so:/system/lib/libsec-ril.so|libsec-ril_shim.so:/system/vendor/lib/libizat_core.so|libizat_core_shim.so
 
