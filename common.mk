@@ -347,6 +347,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # WiFi
 PRODUCT_PACKAGES += \
     wcnss_service \
+    hostapd \
+    hostapd_cli \
     wificond \
     wifilogd \
     android.hardware.wifi@1.0-service
