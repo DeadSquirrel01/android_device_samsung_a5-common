@@ -25,9 +25,9 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import init.qcom.usb.rc
-#import init.target.rc
-#import init.carrier.rc
+import /vendor/etc/init/hw/init.qcom.usb.rc
+#import /vendor/etc/init/hw/init.target.rc
+#import /vendor/etc/init/hw/init.carrier.rc
 
 on init
 
@@ -61,7 +61,7 @@ on early-boot
     write /sys/kernel/boot_adsp/boot 1
     chown root audio /sys/kernel/boot_adsp/boot
     setprop qcom.audio.init complete
-    exec u:r:qti_init_shell:s0 -- /init.qcom.early_boot.sh
+    exec u:r:qti_init_shell:s0 -- /vendor/etc/init/hw/init.qcom.early_boot.sh
 
     # Remove symlinks to avoid issues with migrate after nandroid restores
     # Will be recreated at end of boot
@@ -411,7 +411,7 @@ on property:ro.config.ksm=true
 
 #enable zram
 on property:ro.config.zram=true
-    swapon_all fstab.qcom
+    swapon_all /vendor/etc/fstab.qcom
     write /proc/sys/vm/page-cluster 0
     write /proc/sys/vm/swappiness 100
 
@@ -678,7 +678,7 @@ on property:persist.debug.trace=1
 on property:bluetooth.isEnabled=true
     write /sys/class/bluetooth/hci0/idle_timeout 7000
 
-service qcom-c_main-sh /system/bin/sh /init.class_main.sh
+service qcom-c_main-sh /system/bin/sh /vendor/etc/init/hw/init.class_main.sh
     class main
     user root
     oneshot
@@ -721,12 +721,12 @@ service start_hci_filter /system/bin/wcnss_filter
     group bluetooth diag
     disabled
 
-service config_bluetooth /system/bin/sh /system/etc/init.qcom.bt.sh "onboot"
+service config_bluetooth /system/bin/sh /vendor/etc/init/hw/init.qcom.bt.sh "onboot"
     class core
     user root
     oneshot
 
-service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
+service hciattach /system/bin/sh /vendor/etc/init/hw/init.qcom.bt.sh
     class late_start
     user bluetooth
     group bluetooth net_bt_admin
@@ -788,22 +788,23 @@ service loc_launcher /system/bin/loc_launcher
     class late_start
     group gps inet net_raw diag net_admin wifi
 
-service fm_dl /system/bin/sh /system/etc/init.qcom.fm.sh
+service fm_dl /system/bin/sh /vendor/etc/init/hw/init.qcom.fm.sh
     class late_start
     user system
     group system
     disabled
     oneshot
 
-service qcom-sh /system/bin/sh /init.qcom.sh
+service qcom-sh /system/bin/sh /vendor/etc/init/hw/init.qcom.sh
     class late_start
     user root
     oneshot
 
-#service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
-#    class late_start
-#    user root
-#    oneshot
+service qcom-post-boot /system/bin/sh /vendor/etc/init/hw/init.qcom.post_boot.sh
+    class late_start
+    user root
+    disabled
+    oneshot
 
 on property:sys.boot_completed=1
     setprop sys.io.scheduler "bfq"
@@ -841,7 +842,7 @@ service ril-daemon2 /vendor/bin/hw/rild -l /system/lib/libsec-ril-dsds.so -c 2
     capabilities BLOCK_SUSPEND NET_ADMIN NET_RAW
     disabled
 
-service usb_uicc_enable /system/bin/sh /system/etc/init.qcom.uicc.sh
+service usb_uicc_enable /system/bin/sh /vendor/etc/init/hw/init.qcom.uicc.sh
     class late_start
     user root
     disabled
