@@ -186,7 +186,7 @@ BOARD_CUSTOM_RECOVERY_KEYMAPPING  := ../../device/samsung/a5-common/recovery/rec
 BOARD_HAS_NO_SELECT_BUTTON        := true
 
 # Storage
-TARGET_RECOVERY_FSTAB   := device/samsung/a5-common/rootdir/etc/fstab.qcom
+TARGET_RECOVERY_FSTAB   := device/samsung/a5-common/recovery/fstab.rcvry
 RECOVERY_SDCARD_ON_DATA := true
 
 # Misc.
