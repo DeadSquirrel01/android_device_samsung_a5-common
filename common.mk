@@ -358,6 +358,10 @@ PRODUCT_PACKAGES += \
     wpa_supplicant \
     wpa_supplicant.conf
 
+# Frameworks
+PRODUCT_ENFORCE_RRO_TARGETS := \
+    framework-res
+
 # For TWRP
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery/twrp.fstab:recovery/root/etc/twrp.fstab
