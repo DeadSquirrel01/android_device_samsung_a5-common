@@ -45,7 +45,7 @@ int main() {
         ALOGI("Button lights not supported on this device");
     }
 
-    android::sp<ILight> service = new Light(std::move(backlight), std::move(buttonlight));
+    android::sp<ILight> service = new Light(std::move(backlight), std::move(buttonlight), std::move(indicator));
 
     configureRpcThreadpool(1, true);
 
