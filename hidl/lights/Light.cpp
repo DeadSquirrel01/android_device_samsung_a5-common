@@ -46,10 +46,9 @@ static constexpr uint32_t MODE_BLINK = 0x2;
 static constexpr uint32_t MODE_SHIFT = 24;
 static constexpr uint32_t MODE_MASK = 0x0f000000;
 
-Light::Light(std::ofstream&& backlight, std::ofstream&& buttonlight, std::ofstream&& indicator) :
+Light::Light(std::ofstream&& backlight, std::ofstream&& buttonlight) :
     mBacklight(std::move(backlight)),
-    mButtonlight(std::move(buttonlight)),
-    mIndicator(std::move(indicator)) {
+    mButtonlight(std::move(buttonlight)) {
     auto attnFn(std::bind(&Light::setAttentionLight, this, std::placeholders::_1));
     auto backlightFn(std::bind(&Light::setBacklight, this, std::placeholders::_1));
     auto batteryFn(std::bind(&Light::setBatteryLight, this, std::placeholders::_1));
@@ -133,7 +132,6 @@ void Light::setSpeakerBatteryLightLocked() {
     } else {
         /* Lights off */
         ALOGD("%s: Lights off", __func__);
-        mIndicator << "0x00000000 0 0" << std::endl;
     }
 }
 
@@ -151,8 +149,6 @@ void Light::setSpeakerLightLocked(const LightState& state) {
     count = snprintf(blink, sizeof(blink) - 1, "0x%08x %d %d", color, state.flashOnMs, state.flashOffMs);
 
     ALOGD("%s: count=%d, blink=\"%s\".", __func__, count, blink);
-
-    mIndicator << blink << std::endl;
 }
 
 }  // namespace implementation
