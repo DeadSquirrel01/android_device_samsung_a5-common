@@ -99,6 +99,7 @@ PRODUCT_PACKAGES += \
     gralloc.msm8916 \
     hwcomposer.msm8916 \
     memtrack.msm8916 \
+    copybit.msm8916 \
     libtinyxml \
     libgenlock \
     android.hardware.graphics.allocator@2.0-impl \
