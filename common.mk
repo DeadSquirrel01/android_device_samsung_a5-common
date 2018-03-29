@@ -146,8 +146,8 @@ PRODUCT_PACKAGES += \
     Camera2 \
     libmm-qcamera \
     camera.msm8916 \
-    android.hardware.camera.provider@2.4-impl-legacy \
-    camera.device@1.0-impl-legacy
+    android.hardware.camera.provider@2.4-impl \
+    camera.device@1.0-impl
 
 PRODUCT_PROPERTY_OVERRIDES += \
     media.stagefright.legacyencoder=true \
