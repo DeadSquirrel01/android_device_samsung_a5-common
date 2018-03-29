@@ -126,7 +126,9 @@ PRODUCT_PACKAGES += \
 
 # Lights
 PRODUCT_PACKAGES += \
-    android.hardware.light@2.0-service.a5
+    lights.msm8916 \
+    android.hardware.light@2.0-impl \
+    android.hardware.light@2.0-service
 
 # Sensors
 PRODUCT_PACKAGES += \
