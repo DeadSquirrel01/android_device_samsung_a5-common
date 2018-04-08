@@ -98,8 +98,5 @@ dalvik.vm.dex2oat-flags=--no-watch-dog
 persist.media.treble_omx=false
 camera.disable_treble=true
 
-# SDcardFS
-ro.sys.sdcardfs=false
-
 # ZRAM
 ro.config.zram=true
