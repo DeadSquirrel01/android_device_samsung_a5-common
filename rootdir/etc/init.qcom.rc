@@ -409,7 +409,7 @@ on property:ro.config.ksm=true
     write /sys/kernel/mm/ksm/sleep_millisecs 500
     write /sys/kernel/mm/ksm/run 1
 
-#enable zram
+# Enable zram
 on property:ro.config.zram=true
     write /proc/sys/vm/page-cluster 0
     write /proc/sys/vm/swappiness 100
@@ -624,7 +624,7 @@ service thermal-engine /system/bin/thermal-engine
 
 on property:sys.boot_completed=1
     # Enable ZRAM on boot_complete
-    swapon_all fstab.qcom
+    swapon_all /vendor/etc/fstab.qcom
 
 service time_daemon /system/bin/time_daemon
    class late_start
