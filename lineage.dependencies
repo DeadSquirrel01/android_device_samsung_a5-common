@@ -3,30 +3,6 @@
     "remote": "github",
     "repository": "DeadSquirrel01/android_kernel_samsung_msm8916",
     "target_path": "kernel/samsung/msm8916",
-    "revision": "cm-14.1"
-  },
-  {
-    "remote": "github",
-    "repository": "lineageos/android_external_stlport",
-    "target_path": "external/stlport",
-    "revision": "cm-14.1"
-  },
-  {
-    "remote": "github",
-    "repository": "lineageos/android_device_samsung_qcom-common",
-    "target_path": "device/samsung/qcom-common",
-    "revision": "cm-14.1"
-  },
-  {
-    "remote": "github",
-    "repository": "lineageos/android_device_qcom_common",
-    "target_path": "device/qcom/common",
-    "revision": "cm-14.1"
-  },
-  {
-    "remote": "github",
-    "repository": "lineageos/android_external_sony_boringssl-compat",
-    "target_path": "external/sony/boringssl-compat",
-    "revision": "cm-14.1"
+    "revision": "halium-7.1"
   }
 ]

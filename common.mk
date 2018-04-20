@@ -18,7 +18,7 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 $(call inherit-product-if-exists, vendor/samsung/a5-common/a5-common-vendor.mk)
 
 # Common overlay
-DEVICE_PACKAGE_OVERLAYS += device/samsung/a5-common/overlay
+#DEVICE_PACKAGE_OVERLAYS += device/samsung/a5-common/overlay
 
 # Permissions
 PRODUCT_COPY_FILES += \
@@ -38,16 +38,20 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
     frameworks/native/data/etc/android.hardware.bluetooth.xml:system/etc/permissions/android.hardware.bluetooth.xml \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
-    frameworks/native/data/etc/android.software.midi.xml:system/etc/permissions/android.software.midi.xml \
-    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml
+    frameworks/native/data/etc/android.software.midi.xml:system/etc/permissions/android.software.midi.xml #\
+#    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml
+
+# Boot image
+PRODUCT_PACKAGES += \
+    mkbootimg
 
 # Doze
-PRODUCT_PACKAGES += \
-    SamsungDoze
+#PRODUCT_PACKAGES += \
+#    SamsungDoze
 
 # Touch issue workaround
-PRODUCT_PACKAGES += \
-    InputDisabler
+#PRODUCT_PACKAGES += \
+#    InputDisabler
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -90,9 +94,9 @@ PRODUCT_PACKAGES += \
 
 # Camera
 PRODUCT_PACKAGES += \
-    Snap \
     libmm-qcamera \
-    camera.msm8916
+    camera.msm8916 #\
+#    Snap
 
 PRODUCT_PROPERTY_OVERRIDES += \
     media.stagefright.legacyencoder=true \
@@ -118,18 +122,18 @@ PRODUCT_PACKAGES += \
 
 # Misc. libs
 PRODUCT_PACKAGES += \
-    libstlport \
-    libboringssl-compat
+    libstlport #\
+#    libboringssl-compat
 
 # FM
 PRODUCT_PACKAGES += \
-    FM2 \
     libqcomfm_jni \
-    qcom.fmradio
+    qcom.fmradio #\
+#    FM2
 
 # Gello
-PRODUCT_PACKAGES += \
-    Gello
+#PRODUCT_PACKAGES += \
+#    Gello
 
 # IPv6 tethering
 PRODUCT_PACKAGES += \
@@ -158,16 +162,16 @@ PRODUCT_PACKAGES += \
     init.recovery.qcom.rc
 
 # Filesystem
-PRODUCT_PACKAGES += \
-    fsck.f2fs \
-    mkfs.f2fs
+#PRODUCT_PACKAGES += \
+#    fsck.f2fs \
+#    mkfs.f2fs
 
 # Live Wallpapers
-PRODUCT_PACKAGES += \
-    LiveWallpapers \
-    LiveWallpapersPicker \
-    VisualizationWallpapers \
-    librs_jni
+#PRODUCT_PACKAGES += \
+#    LiveWallpapers \
+#    LiveWallpapersPicker \
+#    VisualizationWallpapers \
+#    librs_jni
 
 # WCNSS service daemon
 PRODUCT_PACKAGES += \
@@ -175,15 +179,15 @@ PRODUCT_PACKAGES += \
     wcnss_service
 
 # ANT+
-PRODUCT_PACKAGES += \
-   AntHalService \
-   com.dsi.ant.antradio_library \
-   libantradio
+#PRODUCT_PACKAGES += \
+#   AntHalService \
+#   com.dsi.ant.antradio_library \
+#   libantradio
 
 # Misc
 PRODUCT_PACKAGES += \
-    libxml2 \
-    Stk
+    libxml2 #\
+#    Stk
 
 # NFC packages
 #PRODUCT_PACKAGES += \
@@ -193,8 +197,8 @@ PRODUCT_PACKAGES += \
 #    com.android.nfc_extras
 
 # Screen Recording
-PRODUCT_PACKAGES += \
-    Screencast
+#PRODUCT_PACKAGES += \
+#    Screencast
 
 # NFC configuration
 #PRODUCT_COPY_FILES += \
@@ -285,19 +289,12 @@ PRODUCT_PACKAGES += \
     wpa_supplicant \
     wpa_supplicant.conf
 
-# For TWRP
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery/twrp.fstab:recovery/root/etc/twrp.fstab
-
 # RIL
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.telephony.ril_class=SamsungA5RIL
 
 # We have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
-
-# Common qcom
-$(call inherit-product, device/samsung/qcom-common/qcom-common.mk)
 
 # Dalvik heap config
 $(call inherit-product, frameworks/native/build/phone-xhdpi-2048-dalvik-heap.mk)

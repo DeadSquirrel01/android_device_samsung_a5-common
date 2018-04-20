@@ -20,18 +20,21 @@
 # definition file).
 #
 
-# inherit from qcom-common
--include device/samsung/qcom-common/BoardConfigCommon.mk
-
 LOCAL_PATH := device/samsung/a5-common
 TARGET_SPECIFIC_HEADER_PATH  := device/samsung/a5-common/include
 
 # Platform
+BOARD_VENDOR                 := samsung
+TARGET_NO_BOOTLOADER         := true
 TARGET_BOARD_PLATFORM        := msm8916
 TARGET_BOARD_PLATFORM_GPU    := qcom-adreno306
 TARGET_BOOTLOADER_BOARD_NAME := MSM8916
 
 # Arch
+TARGET_ARCH                 := arm
+TARGET_CPU_ABI              := armeabi-v7a
+TARGET_CPU_ABI2             := armeabi
+TARGET_ARCH_VARIANT         := armv7-a-neon
 TARGET_GLOBAL_CFLAGS        += -mfpu=neon -mfloat-abi=softfp
 TARGET_GLOBAL_CPPFLAGS      += -mfpu=neon -mfloat-abi=softfp
 TARGET_CPU_VARIANT          := cortex-a53
@@ -40,16 +43,17 @@ TARGET_CPU_CORTEX_A53       := true
 # Kernel
 TARGET_KERNEL_ARCH          := arm
 BOARD_CUSTOM_BOOTIMG        := true
-BOARD_CUSTOM_BOOTIMG_MK     := hardware/samsung/mkbootimg.mk
+#BOARD_CUSTOM_BOOTIMG_MK     := hardware/samsung/mkbootimg.mk
 BOARD_DTBTOOL_ARGS          := -2
-BOARD_KERNEL_CMDLINE        := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=enforcing
+BOARD_KERNEL_CMDLINE        := androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci selinux=0
 BOARD_KERNEL_BASE           := 0x80000000
 BOARD_RAMDISK_OFFSET        := 0x02000000
 BOARD_KERNEL_TAGS_OFFSET    := 0x01e00000
 BOARD_KERNEL_SEPARATED_DT   := true
 BOARD_KERNEL_PAGESIZE       := 2048
 TARGET_KERNEL_SOURCE        := kernel/samsung/msm8916
-TARGET_KERNEL_CONFIG        := lineageos_a5ultexx_defconfig
+#TARGET_KERNEL_CONFIG        := halium_a5ultexx_defconfig
+TARGET_KERNEL_CONFIG        := ubuntu_a5ultexx_defconfig
 
 # Toolchain
 KERNEL_TOOLCHAIN            := $(ANDROID_BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-eabi-4.8/bin
@@ -60,7 +64,7 @@ BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE   := ext4
 BOARD_SYSTEMIMAGE_PARTITION_TYPE    := ext4
 BOARD_HAS_LARGE_FILESYSTEM          := true
 TARGET_USERIMAGES_USE_EXT4          := true
-TARGET_USERIMAGES_USE_F2FS          := true
+#TARGET_USERIMAGES_USE_F2FS          := true
 BOARD_BOOTIMAGE_PARTITION_SIZE      := 13631488
 BOARD_RECOVERYIMAGE_PARTITION_SIZE  := 167286400
 BOARD_SYSTEMIMAGE_PARTITION_SIZE    := 2516582400
@@ -75,10 +79,13 @@ BOARD_HAVE_BLUETOOTH                        := true
 BOARD_HAVE_BLUETOOTH_QCOM                   := true
 BLUETOOTH_HCI_USE_MCT                       := true
 
+# Qualcomm support
+BOARD_USES_QCOM_HARDWARE  := true
+
 # RIL
-BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril/
+BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril_class/
 BOARD_PROVIDES_LIBRIL            := true
-BOARD_MODEM_TYPE                 := xmm62xx
+BOARD_MODEM_TYPE                 := xmm7260
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT          := true
@@ -102,7 +109,7 @@ TARGET_POWERHAL_VARIANT             := qcom
 TARGET_POWERHAL_SET_INTERACTIVE_EXT := $(LOCAL_PATH)/power/power_ext.c
 
 # Touchscreen
-TARGET_TAP_TO_WAKE_NODE := "/sys/class/sec/sec_touchscreen/wake_gesture"
+#TARGET_TAP_TO_WAKE_NODE := "/sys/class/sec/sec_touchscreen/wake_gesture"
 
 # Wifi
 BOARD_HAS_QCOM_WLAN               := true
@@ -114,8 +121,8 @@ BOARD_WPA_SUPPLICANT_PRIVATE_LIB  := lib_driver_cmd_qcwcn
 TARGET_PROVIDES_WCNSS_QMI         := true
 TARGET_USES_QCOM_WCNSS_QMI        := true
 TARGET_USES_WCNSS_CTRL            := true
-WIFI_DRIVER_MODULE_PATH           := "/system/lib/modules/wlan.ko"
-WIFI_DRIVER_MODULE_NAME           := "wlan"
+#WIFI_DRIVER_MODULE_PATH           := "/system/lib/modules/wlan.ko"
+#WIFI_DRIVER_MODULE_NAME           := "wlan"
 WPA_SUPPLICANT_VERSION            := VER_0_8_X
 
 # Bluetooth
@@ -134,7 +141,7 @@ USE_DEVICE_SPECIFIC_CAMERA      := true
 TARGET_HAS_LEGACY_CAMERA_HAL1   := true
 
 # CMHW
-BOARD_HARDWARE_CLASS += device/samsung/a5-common/cmhw
+#BOARD_HARDWARE_CLASS += device/samsung/a5-common/cmhw
 
 # Workaround to avoid issues with legacy liblights on QCOM platforms
 TARGET_PROVIDES_LIBLIGHT := true
@@ -158,13 +165,13 @@ OVERRIDE_RS_DRIVER                     := libRSDriver_adreno.so
 TARGET_FORCE_HWC_FOR_VIRTUAL_DISPLAYS  := true
 
 # ANT+
-BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
+#BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
 
 # SELinux
-include device/qcom/sepolicy/sepolicy.mk
+#include device/qcom/sepolicy/sepolicy.mk
 
-BOARD_SEPOLICY_DIRS += \
-    device/samsung/a5-common/sepolicy
+#BOARD_SEPOLICY_DIRS += \
+#   device/samsung/a5-common/sepolicy
 
 # Misc.
 TARGET_SYSTEM_PROP := device/samsung/a5-common/system.prop
@@ -172,6 +179,8 @@ TARGET_SYSTEM_PROP := device/samsung/a5-common/system.prop
 # Display
 RECOVERY_GRAPHICS_USE_LINELENGTH  := true
 TARGET_RECOVERY_PIXEL_FORMAT      := "RGB_565"
+TARGET_USES_C2D_COMPOSITION       := true
+TARGET_USES_ION                   := true
 
 # Keys
 BOARD_CUSTOM_RECOVERY_KEYMAPPING  := ../../device/samsung/a5-common/recovery/recovery_keys.c
@@ -187,23 +196,11 @@ TARGET_RECOVERY_QCOM_RTC_FIX           := true
 # Text Relocations
 TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
 
-# TWRP
-ifeq ($(RECOVERY_VARIANT),twrp)
-TW_NO_REBOOT_BOOTLOADER := true
-TW_HAS_DOWNLOAD_MODE    := true
-TW_THEME                := portrait_hdpi
-TW_BRIGHTNESS_PATH      := "/sys/class/leds/lcd-backlight/brightness"
-TW_MAX_BRIGHTNESS       := 255
-TW_DEFAULT_BRIGHTNESS   := 100
-TW_MTP_DEVICE           := "/dev/usb_mtp_gadget"
-TW_EXCLUDE_SUPERSU      := true
-endif
-
 # Dex
-ifeq ($(HOST_OS),linux)
-  ifeq ($(TARGET_BUILD_VARIANT),user)
-    ifeq ($(WITH_DEXPREOPT),)
-      WITH_DEXPREOPT := true
-    endif
-  endif
-endif
+#ifeq ($(HOST_OS),linux)
+#  ifeq ($(TARGET_BUILD_VARIANT),user)
+#    ifeq ($(WITH_DEXPREOPT),)
+#      WITH_DEXPREOPT := true
+#    endif
+#  endif
+#endif
