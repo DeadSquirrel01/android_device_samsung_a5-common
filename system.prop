@@ -100,3 +100,6 @@ camera.disable_treble=true
 
 # ZRAM
 ro.config.zram=true
+
+# Camera
+debug.camcorder.disablemeta=true
