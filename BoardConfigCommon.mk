@@ -78,7 +78,7 @@ BLUETOOTH_HCI_USE_MCT                       := true
 # RIL
 BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril/
 BOARD_PROVIDES_LIBRIL            := true
-BOARD_MODEM_TYPE                 := xmm62xx
+BOARD_MODEM_TYPE                 := xmm7260
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT          := true
