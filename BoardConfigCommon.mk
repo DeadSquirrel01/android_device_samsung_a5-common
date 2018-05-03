@@ -83,7 +83,7 @@ BLUETOOTH_HCI_USE_MCT                       := true
 BOARD_USES_QCOM_HARDWARE  := true
 
 # RIL
-BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril_class/
+#BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril_class/
 BOARD_PROVIDES_LIBRIL            := true
 BOARD_MODEM_TYPE                 := xmm7260
 
@@ -93,7 +93,7 @@ EXTENDED_FONT_FOOTPRINT          := true
 # Audio
 BOARD_USES_ALSA_AUDIO              := true
 AUDIO_FEATURE_ENABLED_KPI_OPTIMIZE := true
-USE_CUSTOM_AUDIO_POLICY            := 1
+#USE_CUSTOM_AUDIO_POLICY            := 1
 
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE    := true
@@ -146,7 +146,7 @@ TARGET_HAS_LEGACY_CAMERA_HAL1   := true
 TARGET_PROVIDES_LIBLIGHT := true
 
 # Qcom
-BOARD_USES_QC_TIME_SERVICES         := true
+#BOARD_USES_QC_TIME_SERVICES         := true
 TARGET_USES_QCOM_BSP                := true
 TARGET_PLATFORM_DEVICE_BASE         := /devices/soc.0/
 PROTOBUF_SUPPORTED                  := true

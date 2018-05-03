@@ -98,4 +98,4 @@ ro.sys.fw.dex2oat_thread_count=4
 dalvik.vm.dex2oat-flags=--no-watch-dog
 
 # Sdcardfs
-ro.sys.sdcardfs=true
+#ro.sys.sdcardfs=true

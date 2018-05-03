@@ -478,10 +478,6 @@ on post-fs-data
     mkdir /data/connectivity 0771 system system
     chown system system /data/connectivity
 
-    # Enable wlan driver
-    chown wifi wifi /sys/module/wlan/parameters/fwpath
-    write /sys/module/wlan/parameters/fwpath "sta"
-
     # For SEC NFC
     #chmod 0770 /data/nfc
     #chown nfc nfc /data/nfc
@@ -627,6 +623,7 @@ service time_daemon /system/bin/time_daemon
    class late_start
    user root
    group root
+   disabled
 
 service qcomsysd /system/bin/qcom-system-daemon
     class main
@@ -701,7 +698,7 @@ on property:hw.fm.init=1
 on property:hw.fm.init=0
     write /sys/module/radio_iris_transport/parameters/fmsmd_set 0
 
-service irsc_util /system/bin/irsc_util "/etc/sec_config"
+service irsc_util /system/bin/irsc_util "/system/etc/sec_config"
     class main
     user root
     oneshot
