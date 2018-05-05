@@ -83,7 +83,7 @@ BLUETOOTH_HCI_USE_MCT := true
 BOARD_USES_QCOM_HARDWARE := true
 
 # RIL
-#BOARD_RIL_CLASS := ../../../device/samsung/a5-common/ril_class/
+BOARD_RIL_CLASS := ../../../device/samsung/a5-common/ril_class/
 BOARD_PROVIDES_LIBRIL := true
 BOARD_MODEM_TYPE := xmm7260
 

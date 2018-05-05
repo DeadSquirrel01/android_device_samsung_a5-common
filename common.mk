@@ -282,8 +282,8 @@ PRODUCT_PACKAGES += \
     wpa_supplicant.conf
 
 # RIL
-#PRODUCT_PROPERTY_OVERRIDES += \
-#    ro.telephony.ril_class=SamsungA5RIL
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.telephony.ril_class=SamsungA5RIL
 
 # We have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
