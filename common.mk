@@ -219,7 +219,7 @@ PRODUCT_PACKAGES += \
     fstab.qcom \
     init.qcom.rc \
     init.qcom.usb.rc \
-    ueventd.qcom.rc \
+    ueventd.rc \
     init.qcom.post_boot.sh \
     init.carrier.rc \
     init.class_main.sh \
