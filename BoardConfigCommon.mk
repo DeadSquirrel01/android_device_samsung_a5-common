@@ -76,7 +76,7 @@ BOARD_HAVE_BLUETOOTH_QCOM                   := true
 BLUETOOTH_HCI_USE_MCT                       := true
 
 # RIL
-BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril/
+#BOARD_RIL_CLASS                  := ../../../device/samsung/a5-common/ril/
 BOARD_PROVIDES_LIBRIL            := true
 BOARD_MODEM_TYPE                 := xmm7260
 
@@ -91,7 +91,6 @@ EXTENDED_FONT_FOOTPRINT          := true
 BOARD_USES_ALSA_AUDIO              := true
 AUDIO_FEATURE_ENABLED_KPI_OPTIMIZE := true
 USE_CUSTOM_AUDIO_POLICY            := 1
-USE_XML_AUDIO_POLICY_CONF          := 1
 
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE    := true
@@ -189,7 +188,7 @@ RECOVERY_SDCARD_ON_DATA := true
 TARGET_RECOVERY_QCOM_RTC_FIX           := true
 
 # Text Relocations
-TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
+#TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
 
 # TWRP
 ifeq ($(RECOVERY_VARIANT),twrp)
