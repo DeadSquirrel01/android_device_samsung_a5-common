@@ -102,3 +102,6 @@ dalvik.vm.dex2oat-flags=--no-watch-dog
 
 # Camera
 persist.camera.shutter.disable=1
+
+# Zram
+ro.config.zram=true
