@@ -294,6 +294,3 @@ fi
 cp /firmware/image/modem_pr/mbn_ota.txt /data/misc/radio/modem_config
 chown radio.radio /data/misc/radio/modem_config/mbn_ota.txt
 echo 1 > /data/misc/radio/copy_complete
-
-# Enable WiFi
-echo "sta" > /sys/module/wlan/parameters/fwpath
