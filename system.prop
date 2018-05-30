@@ -94,11 +94,4 @@ ro.sys.fw.dex2oat_thread_count=4
 dalvik.vm.dex2oat-flags=--no-watch-dog
 
 # Sdcardfs
-#ro.sys.sdcardfs=true
-
-# Camera
-persist.camera.shutter.disable=1
-
-# Zram
-ro.config.zram=true
-
+ro.sys.sdcardfs=true
