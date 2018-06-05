@@ -1,7 +1,7 @@
 <manifest version="1.0" type="device">
     <hal format="hidl">
         <name>android.hardware.graphics.allocator</name>
-         <transport arch="32">passthrough</transport>
+         <transport>hwbinder</transport>
         <version>2.0</version>
         <interface>
             <name>IAllocator</name>
@@ -77,7 +77,7 @@
     </hal>
     <hal format="hidl">
         <name>android.hardware.thermal</name>
-        <transport arch="32">passthrough</transport>
+        <transport>hwbinder</transport>
         <version>1.0</version>
         <interface>
             <name>IThermal</name>
