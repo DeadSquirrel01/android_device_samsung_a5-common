@@ -428,6 +428,10 @@ on late-fs
     start gralloc-2-0
     mount_all /vendor/etc/fstab.qcom --late
 
+on post-fs
+    # Allow writing to the kernel trace log.
+    chmod 0222 /sys/kernel/debug/tracing/trace_marker
+
 # msm specific files that need to be created on /data
 on post-fs-data
     mkdir /tombstones/modem 0771 system system
