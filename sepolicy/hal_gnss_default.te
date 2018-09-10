@@ -2,3 +2,5 @@ allow hal_gnss_default kernel:system module_request;
 allow hal_gnss_default qmuxd_socket:dir { search write add_name remove_name };
 allow hal_gnss_default sysfs:file { open read write };
 allow hal_gnss_default qmuxd_socket:sock_file { create getattr setattr unlink };
+allow hal_gnss_default init:unix_stream_socket connectto;
+allow hal_gnss_default ssr_device:chr_file { open read };
