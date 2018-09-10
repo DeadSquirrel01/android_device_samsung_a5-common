@@ -1,1 +1,1 @@
-allow surfaceflinger kernel:system module_request;
+allow surfaceflinger vfat:dir search;

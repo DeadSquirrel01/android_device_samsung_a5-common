@@ -1,0 +1,6 @@
+type loc_launcher, domain;
+type loc_launcher_exec, exec_type, file_type;
+
+init_daemon_domain(loc_launcher)
+
+allow loc_launcher self:capability setuid;

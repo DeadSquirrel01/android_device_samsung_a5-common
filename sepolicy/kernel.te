@@ -1,3 +1,1 @@
-allow kernel block_device:blk_file rw_file_perms;
-allow kernel isolated_app:fd use;
-r_dir_file(kernel, sysfs_sec_key)
+allow kernel self:capability chown;

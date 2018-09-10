@@ -1,0 +1,6 @@
+allow hal_audio_default property_socket:sock_file { write };
+
+allow hal_audio_default i2c_device:chr_file { read write ioctl };
+allow hal_audio_default i2c_device:chr_file { open };
+
+allow hal_audio_default init:unix_stream_socket { connectto };

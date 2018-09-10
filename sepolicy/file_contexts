@@ -30,3 +30,18 @@
 
 # CMHW
 /sys/devices/virtual/timed_output/vibrator(/.*)?				u:object_r:sysfs_vibeamp:s0
+
+# time_daemon
+/system/bin/time_daemon								u:object_r:time_daemon_exec:s0
+
+# loc_launcher
+/system/bin/loc_launcher							u:object_r:loc_launcher_exec:s0
+
+# rmt_storage
+/system/bin/rmt_storage								u:object_r:rmt_storage_exec:s0
+
+# qcamerasvr
+/system/bin/mm-qcamera-daemon							u:object_r:mm-qcamerad_exec:s0
+
+# qmuxd
+/system/bin/qmuxd								u:object_r:qmuxd_exec:s0

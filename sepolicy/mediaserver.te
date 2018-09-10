@@ -4,3 +4,6 @@ allow mediaserver camera_prop:property_service set;
 allow mediaserver system_file:file execmod; # for libmmjpeg
 allow mediaserver media_rw_data_file:file write;
 allow mediaserver kernel:system module_request;
+allow mediaserver init:unix_dgram_socket sendto;
+allow mediaserver system_data_file:sock_file write;
+

@@ -1,0 +1,5 @@
+dontaudit kernel kernel:capability { dac_override };
+
+dontaudit system_server dalvikcache_data_file:file { execute write };
+
+dontaudit perfd perfd:capability { sys_ptrace };
