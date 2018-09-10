@@ -136,10 +136,11 @@ BOARD_VOLD_DISC_HAS_MULTIPLE_MAJORS  := true
 BOARD_VOLD_MAX_PARTITIONS            := 65
 
 # Camera
-TARGET_PROVIDES_CAMERA_HAL      := true
-USE_DEVICE_SPECIFIC_CAMERA      := true
-TARGET_HAS_LEGACY_CAMERA_HAL1   := true
-TARGET_USES_MEDIA_EXTENSIONS    := true
+TARGET_PROVIDES_CAMERA_HAL                         := true
+USE_DEVICE_SPECIFIC_CAMERA                         := true
+TARGET_HAS_LEGACY_CAMERA_HAL1                      := true
+TARGET_NEEDS_LEGACY_CAMERA_HAL1_DYN_NATIVE_HANDLE  := true
+TARGET_USES_MEDIA_EXTENSIONS                       := true
 
 # LineageHW
 BOARD_HARDWARE_CLASS += device/samsung/a5-common/lineagehw
