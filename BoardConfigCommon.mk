@@ -24,6 +24,8 @@
 -include device/samsung/qcom-common/BoardConfigCommon.mk
 
 LOCAL_PATH := device/samsung/a5-common
+BUILD_TOP  := $(shell pwd)
+
 TARGET_SPECIFIC_HEADER_PATH  := device/samsung/a5-common/include
 
 # Platform
@@ -53,7 +55,7 @@ TARGET_KERNEL_SELINUX_CONFIG  := selinux_defconfig
 BOARD_KERNEL_IMAGE_NAME       := zImage
 
 # Toolchain
-KERNEL_TOOLCHAIN            := $(ANDROID_BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-eabi-4.8/bin
+KERNEL_TOOLCHAIN            := $(BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-eabi-4.8/bin
 KERNEL_TOOLCHAIN_PREFIX     := arm-eabi-
 
 # Partition sizes and filesystems
