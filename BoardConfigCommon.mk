@@ -180,6 +180,10 @@ BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
 # Binder
 TARGET_USES_64_BIT_BINDER  := true
 
+# SDK
+TARGET_PROCESS_SDK_VERSION_OVERRIDE += \
+    /system/vendor/bin/hw/rild=27
+
 # SELinux
 include device/qcom/sepolicy/sepolicy.mk
 include device/qcom/sepolicy/legacy-sepolicy.mk
