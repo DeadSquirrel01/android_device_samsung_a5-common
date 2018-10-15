@@ -111,7 +111,6 @@ TARGET_QCOM_NO_FM_FIRMWARE  := true
 BOARD_HAVE_QCOM_FM          := true
 
 # Build our own PowerHAL
-TARGET_POWERHAL_VARIANT             := qcom
 TARGET_POWERHAL_SET_INTERACTIVE_EXT := $(LOCAL_PATH)/power/power_ext.c
 
 # Touchscreen
