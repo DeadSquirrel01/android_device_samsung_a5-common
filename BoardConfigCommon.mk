@@ -208,10 +208,7 @@ TARGET_RECOVERY_FSTAB   := device/samsung/a5-common/rootdir/etc/fstab.qcom
 RECOVERY_SDCARD_ON_DATA := true
 
 # Misc.
-TARGET_RECOVERY_QCOM_RTC_FIX           := true
-
-# Text Relocations
-TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
+TARGET_RECOVERY_QCOM_RTC_FIX := true
 
 # Ignore Dependencies
 ALLOW_MISSING_DEPENDENCIES := true
