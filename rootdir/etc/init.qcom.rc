@@ -707,6 +707,7 @@ service rmt_storage /system/bin/rmt_storage
     user root
     group system wakelock
     disabled
+    shutdown critical
 
 on property:wc_transport.start_hci=true
     start start_hci_filter
