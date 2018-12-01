@@ -55,6 +55,7 @@ media.aac_51_output_enabled=true
 
 # Wi-Fi, Bluetooth
 wifi.interface=wlan0
+wifi.direct.interface=p2p0
 vendor.qcom.bluetooth.soc=pronto
 ro.qualcomm.bt.hci_transport=smd
 ro.bluetooth.dun=true
