@@ -183,6 +183,8 @@ TARGET_USES_64_BIT_BINDER  := true
 
 # SDK
 TARGET_PROCESS_SDK_VERSION_OVERRIDE += \
+    /system/bin/mediaserver=22 \
+    /system/bin/mm-qcamera-daemon=22 \
     /system/vendor/bin/hw/rild=27
 
 # SELinux
