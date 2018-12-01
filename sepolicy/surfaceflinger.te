@@ -1,1 +1,1 @@
-allow surfaceflinger vfat:dir search;
+allow surfaceflinger exfat:dir search;

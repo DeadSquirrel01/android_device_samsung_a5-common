@@ -4,3 +4,6 @@ type loc_launcher_exec, exec_type, file_type;
 init_daemon_domain(loc_launcher)
 
 allow loc_launcher self:capability setuid;
+allow loc_launcher location_data_file:dir { search write remove_name add_name };
+allow loc_launcher location_data_file:sock_file { unlink create setattr };
+allow loc_launcher location_socket:sock_file unlink;

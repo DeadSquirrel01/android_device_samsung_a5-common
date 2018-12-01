@@ -1,1 +1,5 @@
 allow system_app sysfs:file read;
+allow system_app sysfs_input:file { getattr open write };
+allow system_app sysfs_input:dir search;
+allow system_app sysfs_input:file rw_file_perms;
+allow system_app sysfs_input:lnk_file read;
