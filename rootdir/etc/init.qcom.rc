@@ -377,6 +377,8 @@ on boot
     mkdir /data/data/com.android.providers.telephony/shared_prefs 0700 radio radio
     symlink /data/user_de/0/com.android.providers.telephony/databases/telephony.db /data/data/com.android.providers.telephony/databases/telephony.db
     symlink /data/user_de/0/com.android.providers.telephony/shared_prefs/preferred-apn.xml /data/data/com.android.providers.telephony/shared_prefs/preferred-apn.xml
+    restorecon /data/data/com.android.providers.telephony/databases
+    restorecon /data/data/com.android.providers.telephony/shared_prefs
 
 on property:ro.config.ksm=true
     write /sys/kernel/mm/ksm/pages_to_scan 100
