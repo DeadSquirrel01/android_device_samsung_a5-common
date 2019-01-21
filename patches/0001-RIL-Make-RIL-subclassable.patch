@@ -1,18 +1,18 @@
-From ed503568a11c2df91f6a6b0bf3e3c1d43f1a763c Mon Sep 17 00:00:00 2001
+From 44660bfc65a0fed8b0ac786f0374628ee250c2b9 Mon Sep 17 00:00:00 2001
 From: DeadSquirrel01 <m.marcaccini01@gmail.com>
-Date: Sun, 14 Oct 2018 01:50:06 +0200
-Subject: [PATCH] RIL-Make-RIL-subclassable.patch
+Date: Tue, 25 Dec 2018 18:50:27 +0100
+Subject: [PATCH] RIL: Make RIL subclassable
 
-Change-Id: I38e878f450ed923189dac6dfec0b2e65cd093f18
+Change-Id: I1bb32bb3d05de860adbefb95a3de3ca622683235
 ---
  Android.mk                                    |  4 +++
- .../internal/telephony/PhoneFactory.java      | 31 +++++++++++++++++--
- .../com/android/internal/telephony/RIL.java   | 27 ++++++++--------
+ .../internal/telephony/PhoneFactory.java      | 30 +++++++++++++++++--
+ .../com/android/internal/telephony/RIL.java   | 20 ++++++-------
  .../internal/telephony/RILRequest.java        |  2 +-
- 4 files changed, 48 insertions(+), 16 deletions(-)
+ 4 files changed, 43 insertions(+), 13 deletions(-)
 
 diff --git a/Android.mk b/Android.mk
-index 561aed01a..4fcedeeed 100644
+index 054128188..d2c380b0e 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -24,6 +24,10 @@ LOCAL_SRC_FILES := $(call all-java-files-under, src/java) \
@@ -27,7 +27,7 @@ index 561aed01a..4fcedeeed 100644
  LOCAL_STATIC_JAVA_LIBRARIES := \
      telephony-protos \
 diff --git a/src/java/com/android/internal/telephony/PhoneFactory.java b/src/java/com/android/internal/telephony/PhoneFactory.java
-index ba777470f..f2a961e6a 100644
+index 512e8a87b..c942d92f8 100644
 --- a/src/java/com/android/internal/telephony/PhoneFactory.java
 +++ b/src/java/com/android/internal/telephony/PhoneFactory.java
 @@ -24,6 +24,7 @@ import android.content.pm.PackageManager;
@@ -46,7 +46,7 @@ index ba777470f..f2a961e6a 100644
  import java.util.HashMap;
  import java.util.Map;
  
-@@ -161,6 +163,8 @@ public class PhoneFactory {
+@@ -163,6 +165,8 @@ public class PhoneFactory {
                  sPhones = new Phone[numPhones];
                  sCommandsInterfaces = new RIL[numPhones];
                  sTelephonyNetworkFactories = new TelephonyNetworkFactory[numPhones];
@@ -55,13 +55,12 @@ index ba777470f..f2a961e6a 100644
  
                  for (int i = 0; i < numPhones; i++) {
                      // reads the system properties and makes commandsinterface
-@@ -168,8 +172,21 @@ public class PhoneFactory {
+@@ -170,8 +174,20 @@ public class PhoneFactory {
                      networkModes[i] = RILConstants.PREFERRED_NETWORK_MODE;
  
                      Rlog.i(LOG_TAG, "Network Mode set to " + Integer.toString(networkModes[i]));
--                    sCommandsInterfaces[i] = new RIL(context, networkModes[i],
--                            cdmaSubscription, i);
-+
+-                    sCommandsInterfaces[i] = telephonyComponentFactory.makeRIL(context,
+-                            networkModes[i], cdmaSubscription, i);
 +                    // Use reflection to construct the RIL class (defaults to RIL)
 +                    try {
 +                        sCommandsInterfaces[i] = instantiateCustomRIL(
@@ -78,8 +77,8 @@ index ba777470f..f2a961e6a 100644
 +                    }
                  }
                  Rlog.i(LOG_TAG, "Creating SubscriptionController");
-                 SubscriptionController.init(context, sCommandsInterfaces);
-@@ -264,6 +281,16 @@ public class PhoneFactory {
+                 telephonyComponentFactory.initSubscriptionController(context, sCommandsInterfaces);
+@@ -269,6 +285,16 @@ public class PhoneFactory {
          }
      }
  
@@ -97,7 +96,7 @@ index ba777470f..f2a961e6a 100644
          synchronized (sLockProxyPhones) {
              if (!sMadeDefaults) {
 diff --git a/src/java/com/android/internal/telephony/RIL.java b/src/java/com/android/internal/telephony/RIL.java
-index f8329630f..6574b2b5c 100644
+index 6c412f13c..1746d6dce 100644
 --- a/src/java/com/android/internal/telephony/RIL.java
 +++ b/src/java/com/android/internal/telephony/RIL.java
 @@ -183,7 +183,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
@@ -107,7 +106,7 @@ index f8329630f..6574b2b5c 100644
 -    private TelephonyMetrics mMetrics = TelephonyMetrics.getInstance();
 +    protected TelephonyMetrics mMetrics = TelephonyMetrics.getInstance();
  
-     boolean mIsMobileNetworkSupported;
+     protected boolean mIsMobileNetworkSupported;
      RadioResponse mRadioResponse;
 @@ -351,7 +351,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
  
@@ -118,7 +117,7 @@ index f8329630f..6574b2b5c 100644
          if (!mIsMobileNetworkSupported) {
              if (RILJ_LOGV) riljLog("getRadioProxy: Not calling getService(): wifi-only");
              if (result != null) {
-@@ -505,7 +505,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -513,7 +513,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
          }
      }
  
@@ -127,30 +126,7 @@ index f8329630f..6574b2b5c 100644
          acquireWakeLock(rr, FOR_WAKELOCK);
          synchronized (mRequestList) {
              rr.mStartTimeMs = SystemClock.elapsedRealtime();
-@@ -513,18 +513,19 @@ public class RIL extends BaseCommands implements CommandsInterface {
-         }
-     }
- 
--    private RILRequest obtainRequest(int request, Message result, WorkSource workSource) {
-+    protected RILRequest obtainRequest(int request, Message result, WorkSource workSource) {
-         RILRequest rr = RILRequest.obtain(request, result, workSource);
-         addRequest(rr);
-         return rr;
-     }
- 
--    private void handleRadioProxyExceptionForRR(RILRequest rr, String caller, Exception e) {
-+    protected void handleRadioProxyExceptionForRR(RILRequest rr, String caller, Exception e) {
-+
-         riljLoge(caller + ": " + e);
-         resetProxyAndRequestList();
-     }
- 
--    private String convertNullToEmptyString(String string) {
-+    protected String convertNullToEmptyString(String string) {
-         return string != null ? string : "";
-     }
- 
-@@ -2507,7 +2508,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -2521,7 +2521,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
          }
      }
  
@@ -159,7 +135,7 @@ index f8329630f..6574b2b5c 100644
          int addrNbrOfDigits;
          int subaddrNbrOfDigits;
          int bearerDataLength;
-@@ -4233,7 +4234,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -4261,7 +4261,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
      /**
       * Function to send ack and acquire related wakelock
       */
@@ -168,7 +144,7 @@ index f8329630f..6574b2b5c 100644
          // TODO: Remove rr and clean up acquireWakelock for response and ack
          RILRequest rr = RILRequest.obtain(RIL_RESPONSE_ACKNOWLEDGEMENT, null,
                  mRILDefaultWorkSource);
-@@ -4269,7 +4270,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -4297,7 +4297,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
       * There is a WAKE_LOCK_TIMEOUT to release the lock, though it shouldn't
       * happen often.
       */
@@ -177,7 +153,7 @@ index f8329630f..6574b2b5c 100644
          synchronized (rr) {
              if (rr.mWakeLockType != INVALID_WAKELOCK) {
                  Rlog.d(RILJ_LOG_TAG, "Failed to aquire wakelock for " + rr.serialString());
-@@ -4337,7 +4338,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -4365,7 +4365,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
          return mRequestList;
      }
  
@@ -186,7 +162,7 @@ index f8329630f..6574b2b5c 100644
          synchronized (rr) {
              switch(rr.mWakeLockType) {
                  case FOR_WAKELOCK:
-@@ -4401,7 +4402,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -4429,7 +4429,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
       * @param error is the RIL_Errno sent back
       * @param loggable true means to print all requests in mRequestList
       */
@@ -195,7 +171,7 @@ index f8329630f..6574b2b5c 100644
          RILRequest rr;
          synchronized (mRequestList) {
              int count = mRequestList.size();
-@@ -4424,7 +4425,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -4452,7 +4452,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
          }
      }
  
@@ -204,7 +180,7 @@ index f8329630f..6574b2b5c 100644
          RILRequest rr = null;
          synchronized (mRequestList) {
              rr = mRequestList.get(serial);
-@@ -4436,7 +4437,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -4464,7 +4464,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
          return rr;
      }
  
@@ -227,5 +203,5 @@ index ffe4a8226..2ee9f29b5 100644
  
          synchronized (sPoolSync) {
 -- 
-2.18.0
+2.18.1
 
