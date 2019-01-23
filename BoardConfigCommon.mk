@@ -221,6 +221,9 @@ TARGET_LD_SHIM_LIBS := \
     /system/vendor/lib/libizat_core.so|libizat_core_shim.so \
     /system/lib/libandroid_servers.so|libtinyalsa2.so
 
+# Encryption
+TARGET_KEYMASTER_SKIP_WAITING_FOR_QSEE := true
+
 # TWRP
 ifeq ($(RECOVERY_VARIANT),twrp)
 TW_NO_REBOOT_BOOTLOADER := true
