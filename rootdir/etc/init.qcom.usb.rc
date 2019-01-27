@@ -32,6 +32,8 @@ on init
     chmod 0660 /sys/class/android_usb/android0/terminal_version
 
 on charger
+    write /sys/fs/selinux/enforce 0
+    class_start charger
     setprop sys.usb.config mass_storage
 
 on fs
