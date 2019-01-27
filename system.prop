@@ -102,4 +102,4 @@ ro.config.zram=true
 debug.camcorder.disablemeta=true
 
 # Vendor security patch
-ro.vendor.build.security_patch=2016-07-01
+ro.vendor.build.security_patch=2017-08-01
