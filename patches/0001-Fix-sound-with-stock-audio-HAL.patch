@@ -1,19 +1,19 @@
-From 23a6c17b831d92ecbc8f888114d7db3653326012 Mon Sep 17 00:00:00 2001
+From 6b40d05e5e42683068b57a96f9f6cfbf4c4d3193 Mon Sep 17 00:00:00 2001
 From: DeadSquirrel01 <m.marcaccini01@gmail.com>
-Date: Fri, 2 Nov 2018 17:32:59 +0100
+Date: Sun, 27 Jan 2019 16:42:51 +0100
 Subject: [PATCH] Fix sound with stock audio HAL
 
-Change-Id: Ia84c62d35f498df3c74608ff54ba361438ae923b
+Change-Id: I5f73733f59a873d727b1771d0a5e19130099f182
 ---
  fmapp2/src/com/caf/fmradio/FMRadio.java       | 17 +++++
- .../src/com/caf/fmradio/FMRadioService.java   | 75 +++++++++++++++++++
- 2 files changed, 92 insertions(+)
+ .../src/com/caf/fmradio/FMRadioService.java   | 71 +++++++++++++++++++
+ 2 files changed, 88 insertions(+)
 
 diff --git a/fmapp2/src/com/caf/fmradio/FMRadio.java b/fmapp2/src/com/caf/fmradio/FMRadio.java
-index 877aa9d2..c81ecd26 100644
+index dcb4a12c..cfe6a363 100644
 --- a/fmapp2/src/com/caf/fmradio/FMRadio.java
 +++ b/fmapp2/src/com/caf/fmradio/FMRadio.java
-@@ -2692,6 +2692,23 @@ public class FMRadio extends Activity
+@@ -2679,6 +2679,23 @@ public class FMRadio extends Activity
        }//handleMessage
     };
  
@@ -38,13 +38,13 @@ index 877aa9d2..c81ecd26 100644
        mTunedStation.setFrequency(FmSharedPreferences.getTunedFrequency());
        mTunedStation.setName("");
 diff --git a/fmapp2/src/com/caf/fmradio/FMRadioService.java b/fmapp2/src/com/caf/fmradio/FMRadioService.java
-index b109b40b..20e8048a 100644
+index 63c1e687..711a37bf 100644
 --- a/fmapp2/src/com/caf/fmradio/FMRadioService.java
 +++ b/fmapp2/src/com/caf/fmradio/FMRadioService.java
-@@ -104,7 +104,31 @@ import android.bluetooth.BluetoothDevice;
- import android.os.IBinder.DeathRecipient;
+@@ -105,7 +105,31 @@ import android.os.IBinder.DeathRecipient;
  import android.content.SharedPreferences;
  import android.content.SharedPreferences.Editor;
+ import java.lang.Math;
 +import android.database.ContentObserver;
  
 +class SettingsContentObserver extends ContentObserver {
@@ -73,15 +73,15 @@ index b109b40b..20e8048a 100644
  
  /**
   * Provides "background" FM Radio (that uses the hardware) capabilities,
-@@ -247,6 +271,7 @@ public class FMRadioService extends Service
+@@ -240,6 +264,7 @@ public class FMRadioService extends Service
     private static Object mNotificationLock = new Object();
  
     private boolean mEventReceived = false;
 +   private SettingsContentObserver mSettingsContentObserver;
     private boolean isfmOffFromApplication = false;
  
-    private AudioRoutingListener mRoutingListener =  null;
-@@ -300,6 +325,8 @@ public class FMRadioService extends Service
+    public FMRadioService() {
+@@ -291,6 +316,8 @@ public class FMRadioService extends Service
        String valueStr = audioManager.getParameters("isA2dpDeviceSupported");
        mA2dpDeviceSupportInHal = valueStr.contains("=true");
        Log.d(LOGTAG, " is A2DP device Supported In HAL"+mA2dpDeviceSupportInHal);
@@ -90,7 +90,7 @@ index b109b40b..20e8048a 100644
  
        getA2dpStatusAtStart();
  
-@@ -376,6 +403,7 @@ public class FMRadioService extends Service
+@@ -366,6 +393,7 @@ public class FMRadioService extends Service
  
        TelephonyManager tmgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
        tmgr.listen(mPhoneStateListener, 0);
@@ -98,27 +98,18 @@ index b109b40b..20e8048a 100644
  
        Log.d(LOGTAG, "onDestroy: unbindFromService completed");
  
-@@ -769,9 +797,19 @@ public class FMRadioService extends Service
-                               if (mSpeakerPhoneOn) {
-                                   Log.d(LOGTAG, "route audio to speaker");
-                                   startApplicationLoopBack(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER);
-+                                  mAudioManager.setMode(AudioManager.MODE_IN_CALL);
-+                                  mAudioManager.setSpeakerphoneOn(true);
-+                                  mAudioManager.setParameters("fm_mode=on");
-+                                  mAudioManager.setParameters("fm_radio_volume=on");
-                               } else {
-                                   Log.d(LOGTAG, "route audio to wiredHeadset");
-                                   startApplicationLoopBack(AudioDeviceInfo.TYPE_WIRED_HEADSET);
-+                                  mAudioManager.setMode(AudioManager.MODE_IN_CALL);
-+                                  mAudioManager.setSpeakerphoneOn(false);
-+                                  mAudioManager.setParameters("fm_mode=on");
-+                                  mAudioManager.setParameters("fm_radio_volume=on");
-+                                  mAudioManager.setParameters("fm_mute=0");
-+                                  mAudioManager.setParameters("fm_radio_mute=0");
-                               }
-                        }
-                     } else if (action.equals("HDMI_CONNECTED")) {
-@@ -1192,6 +1230,10 @@ public class FMRadioService extends Service
+@@ -714,6 +742,10 @@ public class FMRadioService extends Service
+             if(!isAntennaAvailable())
+             {
+                 mSpeakerPhoneOn = false;
++                mAudioManager.setSpeakerphoneOn(false);
++                mAudioManager.setParameters("fm_mode=on");
++                mAudioManager.setParameters("fm_radio_volume=on");
++
+                 if (!isFmOn())
+                     return;
+                 /* Disable FM and let the UI know */
+@@ -990,17 +1022,37 @@ public class FMRadioService extends Service
         mStoppedOnFocusLoss = false;
         mPlaybackInProgress = true;
  
@@ -129,81 +120,82 @@ index b109b40b..20e8048a 100644
         if (mStoppedOnFactoryReset) {
             mStoppedOnFactoryReset = false;
             mSpeakerPhoneOn = false;
-@@ -1202,8 +1244,20 @@ public class FMRadioService extends Service
-                Log.d(LOGTAG, "Route audio to " + temp);
-                if(!mSpeakerPhoneOn) {
-                    startApplicationLoopBack(AudioDeviceInfo.TYPE_WIRED_HEADSET);
-+                   mAudioManager.setMode(AudioManager.MODE_IN_CALL);
-+                   mAudioManager.setSpeakerphoneOn(false);
-+                   mAudioManager.setParameters("fm_mode=on");
-+                   mAudioManager.setParameters("fm_radio_volume=on");
-+                   mAudioManager.setParameters("fm_mute=0");
-+                   mAudioManager.setParameters("fm_radio_mute=0");
-+                   mAudioManager.setParameters("FMRadioVol=" + vol);
-                } else {
-                    startApplicationLoopBack(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER);
-+                   mAudioManager.setMode(AudioManager.MODE_IN_CALL);
-+                   mAudioManager.setSpeakerphoneOn(true);
-+                   mAudioManager.setParameters("fm_mode=on");
-+                   mAudioManager.setParameters("fm_radio_volume=on");
-+                   mAudioManager.setParameters("FMRadioVol=" + vol);
-                }
++           mAudioManager.setSpeakerphoneOn(false);
++           mAudioManager.setParameters("fm_mode=on");
++           mAudioManager.setParameters("fm_radio_volume=on");
++
+        // In FM stop, the audio route is set to default audio device
+        }
+        String temp = mSpeakerPhoneOn ? "Speaker" : "WiredHeadset";
+        Log.d(LOGTAG, "Route audio to " + temp);
+        if (mSpeakerPhoneOn) {
+            mAudioDevice = AudioDeviceInfo.TYPE_BUILTIN_SPEAKER;
++           mAudioManager.setMode(AudioManager.MODE_IN_CALL);
++           mAudioManager.setSpeakerphoneOn(true);
++           mAudioManager.setParameters("fm_mode=on");
++           mAudioManager.setParameters("fm_radio_volume=on");
++           mAudioManager.setParameters("FMRadioVol=" + vol);
         } else {
-                configureAudioDataPath(true);
-@@ -1220,6 +1274,8 @@ public class FMRadioService extends Service
+            mAudioDevice = AudioDeviceInfo.TYPE_WIRED_HEADPHONES;
++           mAudioManager.setMode(AudioManager.MODE_IN_CALL);
++           mAudioManager.setSpeakerphoneOn(false);
++           mAudioManager.setParameters("fm_mode=on");
++           mAudioManager.setParameters("fm_radio_volume=on");
++           mAudioManager.setParameters("fm_mute=0");
++           mAudioManager.setParameters("fm_radio_mute=0");
++           mAudioManager.setParameters("FMRadioVol=" + vol);
+        }
+        configureFMDeviceLoopback(true);
+        try {
+@@ -1015,6 +1067,8 @@ public class FMRadioService extends Service
         Log.d(LOGTAG, "In stopFM");
-        configureAudioDataPath(false);
+        configureFMDeviceLoopback(false);
         mPlaybackInProgress = false;
 +       mAudioManager.setParameters("fm_radio_mute=1");
 +       mAudioManager.setParameters("fm_mode=off");
         try {
             if ((mServiceInUse) && (mCallbacks != null))
                 mCallbacks.onFmAudioPathStopped();
-@@ -1672,6 +1728,9 @@ public class FMRadioService extends Service
-       public void run() {
-          Log.v(LOGTAG, "*** Disabling Speaker");
-          exitRecordSinkThread();
-+         mAudioManager.setSpeakerphoneOn(false);
-+         mAudioManager.setParameters("fm_mode=on");
-+         mAudioManager.setParameters("fm_radio_volume=on");
-       }
-    };
+@@ -2393,6 +2447,9 @@ public class FMRadioService extends Service
  
-@@ -2640,6 +2699,9 @@ public class FMRadioService extends Service
        if ( mSpeakerPhoneOn) {
            mSpeakerPhoneOn = false;
-           exitRecordSinkThread();
 +          mAudioManager.setSpeakerphoneOn(false);
 +          mAudioManager.setParameters("fm_mode=on");
 +          mAudioManager.setParameters("fm_radio_volume=on");
        }
     }
  
-@@ -2789,12 +2851,23 @@ public class FMRadioService extends Service
+@@ -2544,6 +2601,10 @@ public class FMRadioService extends Service
+            return;
  
         mSpeakerPhoneOn = speakerOn;
- 
++
 +       int currvol = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 +       float vol = (float) currvol / 100;
 +
+        if (mReceiver.isCherokeeChip() && (mPref.getBoolean("SLIMBUS_SEQ", true))) {
+            enableSlimbus(DISABLE_SLIMBUS_DATA_PORT);
+        }
+@@ -2551,9 +2612,17 @@ public class FMRadioService extends Service
         if (speakerOn == false) {
-             Log.d(LOGTAG, "route audio to wired headset");
-            startApplicationLoopBack(AudioDeviceInfo.TYPE_WIRED_HEADSET);
+            mAudioDevice = AudioDeviceInfo.TYPE_WIRED_HEADPHONES;
+            outputDevice = "WiredHeadset";
 +           mAudioManager.setSpeakerphoneOn(false);
 +           mAudioManager.setParameters("fm_radio_volume=on");
 +           mAudioManager.setParameters("fm_mute=0");
 +           mAudioManager.setParameters("fm_radio_mute=0");
 +           mAudioManager.setParameters("FMRadioVol=" + vol);
-        } else if (speakerOn == true) {
-            Log.d(LOGTAG, "enabling speaker");
-                startApplicationLoopBack(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER);
-+               mAudioManager.setSpeakerphoneOn(true);
-+               mAudioManager.setParameters("fm_radio_volume=on");
-+               mAudioManager.setParameters("FMRadioVol=" + vol);
+        } else {
+            mAudioDevice = AudioDeviceInfo.TYPE_BUILTIN_SPEAKER;
+            outputDevice = "Speaker";
++           mAudioManager.setSpeakerphoneOn(true);
++           mAudioManager.setParameters("fm_radio_volume=on");
++           mAudioManager.setParameters("FMRadioVol=" + vol);
         }
-        Log.d(LOGTAG, "speakerOn completed:" + speakerOn);
-    }
-@@ -2894,6 +2967,7 @@ public class FMRadioService extends Service
+        mAudioDeviceType = mAudioDevice | AudioSystem.DEVICE_OUT_FM;
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+@@ -2624,6 +2693,7 @@ public class FMRadioService extends Service
        {
           mMuted = true;
           audioManager.setParameters("fm_mute=1");
@@ -211,7 +203,7 @@ index b109b40b..20e8048a 100644
           if (mAudioTrack != null)
               mAudioTrack.setVolume(0.0f);
        }
-@@ -2916,6 +2990,7 @@ public class FMRadioService extends Service
+@@ -2646,6 +2716,7 @@ public class FMRadioService extends Service
        {
           mMuted = false;
           audioManager.setParameters("fm_mute=0");
@@ -220,5 +212,5 @@ index b109b40b..20e8048a 100644
               mAudioTrack.setVolume(1.0f);
           if (mResumeAfterCall)
 -- 
-2.18.1
+2.19.2
 
