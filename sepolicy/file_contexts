@@ -1,5 +1,6 @@
 # Battery
-/sys/devices/soc\.0/qpnp-linearcharger-[0-9a-f]+/power_supply/battery/capacity	u:object_r:sysfs_batteryinfo:s0
+/sys/devices/battery\.85/power_supply/battery(/.*)?				u:object_r:sysfs_batteryinfo:s0
+sys/bus/platform/drivers/sec-battery/battery.85/power_supply/battery(/.*)?	u:object_r:sysfs_batteryinfo:s0
 
 # EFS
 /dev/block/platform/soc\.0/7824900\.sdhci/by-name/efs				u:object_r:modem_efs_partition_device:s0
