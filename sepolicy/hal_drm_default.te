@@ -1,2 +1,5 @@
 allow hal_drm_default kernel:system module_request;
 allow hal_drm_default vndbinder_device:chr_file { read write };
+allow hal_drm_default exfat:dir search;
+allow hal_drm_default exfat:file { getattr open read };
+allow hal_drm_default firmware_file:lnk_file read;
