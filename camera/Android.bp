@@ -1,0 +1,5 @@
+cc_library_static {
+    name: "camera_parameters_samsung_msm8916",
+    include_dirs: ["device/samsung/a5-common/include"],
+    srcs: ["CameraParameters.cpp"],
+}
