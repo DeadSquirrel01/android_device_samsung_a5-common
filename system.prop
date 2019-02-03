@@ -32,21 +32,22 @@ debug.hwui.use_buffer_age=false
 # Perf
 ro.vendor.extension_library=libqti-perfd-client.so
 
-# Audio
-tunnel.audio.encode=false
-audio.offload.video=true
-audio.offload.gapless.enabled=true
-av.streaming.offload.enable=true
-audio.offload.buffer.size.kb=64
-audio.offload.pcm.16bit.enable=true
-audio.offload.pcm.24bit.enable=true
-use.voice.path.for.pcm.voip=true
+# Audio offload
+audio.offload.disable=1
 
 # Fluence
-ro.qc.sdk.audio.fluencetype=none
-persist.audio.fluence.voicecall=true
-persist.audio.fluence.voicerec=false
-persist.audio.fluence.speaker=true
+persist.vendor.audio.fluence.speaker=true
+persist.vendor.audio.fluence.voicecall=true
+persist.vendor.audio.fluence.voicerec=false
+ro.vendor.audio.sdk.fluencetype=none
+ro.vendor.audio.sdk.ssr=false
+
+# Audio voice recording
+vendor.voice.path.for.pcm.voip=true
+vendor.voice.playback.conc.disabled=true
+vendor.voice.record.conc.disabled=true
+vendor.voice.record.conc.disabled=true
+vendor.voice.voip.conc.disabled=true
 
 # Media
 mm.enable.smoothstreaming=true
