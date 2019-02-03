@@ -69,6 +69,7 @@ PRODUCT_PACKAGES += \
     audio.a2dp.default \
     audio.primary.msm8916 \
     audio.primary.default \
+    audio_amplifier.msm8916 \
     audio.r_submix.default \
     audio.usb.default \
     libaudioresampler \
