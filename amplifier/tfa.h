@@ -22,7 +22,7 @@
 #include <stdbool.h>
 
 #define TFA_LIBRARY_PATH "/system/lib/libtfa9895.so"
-
+#define I2S_MIXER_CTL "QUAT_MI2S_RX Audio Mixer MultiMedia1"
 
 /*
  * Amplifier audio modes for different usecases.
@@ -82,9 +82,5 @@ typedef struct {
 int tfa_power(tfa_device_t *tfa_dev, bool on);
 tfa_device_t * tfa_device_open();
 void tfa_device_close(tfa_device_t *tfa_dev);
-
-#define DEFAULT_OUTPUT_SAMPLING_RATE 48000
-#define DEEP_BUFFER_OUTPUT_PERIOD_SIZE 1920
-#define DEEP_BUFFER_OUTPUT_PERIOD_COUNT 3
 
 #endif // TFA_H

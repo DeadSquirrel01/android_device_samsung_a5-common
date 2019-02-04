@@ -26,8 +26,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <audio_hw.h>
 #include <hardware/audio_amplifier.h>
+#include <voice.h>
+#include <msm8916/platform.h>
 
 #include "tfa.h"
 
@@ -58,14 +59,15 @@ static tfa_mode_t classify_snd_device(uint32_t snd_device) {
     tfa_mode_t mode = Audio_Mode_None;
 
     switch (snd_device) {
-        case SND_DEVICE_OUT_SPEAKER:
-        // our audio HAL splits this up
-        //case SND_DEVICE_OUT_SPEAKER_AND_HEADPHONES:
+         case SND_DEVICE_OUT_SPEAKER:
+         case SND_DEVICE_OUT_SPEAKER_AND_HEADPHONES:
             mode = Audio_Mode_Music_Normal;
             break;
         case SND_DEVICE_OUT_VOICE_SPEAKER:
-        default:
+            mode = Audio_Mode_Voice;
             break;
+        default:
+           break;
     }
 
     return mode;

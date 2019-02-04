@@ -9,10 +9,11 @@ LOCAL_SHARED_LIBRARIES := \
 	libtinyalsa
 
 LOCAL_C_INCLUDES := \
+	$(call project-path-for,qcom-audio)/hal/ \
+	$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include \
 	external/tinyalsa/include \
 	external/tinycompress/include \
 	hardware/libhardware/include \
-	hardware/samsung/audio \
 	$(call include-path-for, audio-utils) \
 	$(call include-path-for, audio-route) \
 	$(call include-path-for, audio-effects)

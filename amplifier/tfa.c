@@ -27,10 +27,11 @@
 #include <unistd.h>
 
 #include <tinyalsa/asoundlib.h>
+#include <hardware/audio_amplifier.h>
+#include <voice.h>
+#include <msm8916/platform.h>
 
 #include "tfa.h"
-
-#define I2S_MIXER_CTL "QUAT_MI2S_RX Audio Mixer MultiMedia1"
 
 static int i2s_interface_en(bool enable)
 {
@@ -71,7 +72,7 @@ static void * write_dummy_data(void *param) {
 
     struct pcm_config config = {
         .channels = 2,
-        .rate = 48000,
+        .rate = DEFAULT_OUTPUT_SAMPLING_RATE,
         .period_size = DEEP_BUFFER_OUTPUT_PERIOD_SIZE,
         .period_count = DEEP_BUFFER_OUTPUT_PERIOD_COUNT,
         .format = PCM_FORMAT_S16_LE,
