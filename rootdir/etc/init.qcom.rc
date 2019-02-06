@@ -615,6 +615,9 @@ service perfd /system/bin/perfd
 service thermal-engine /vendor/bin/thermal-engine
    class main
    user root
+   socket thermal-send-client stream 0666 system system
+   socket thermal-recv-client stream 0660 system system
+   socket thermal-recv-passive-client stream 0666 system system
    group root
 
 on property:sys.boot_completed=1
