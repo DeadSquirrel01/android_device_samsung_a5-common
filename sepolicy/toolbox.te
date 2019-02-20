@@ -20,3 +20,5 @@ allow toolbox proc_meminfo:file { read open };
 allow toolbox sysfs_lowmemorykiller:dir search ;
 allow toolbox sysfs_lowmemorykiller:file { read open };
 allow toolbox file_contexts_file:file { read getattr open };
+allow toolbox fm_prop:file read;
+allow toolbox fm_prop:property_service set;
