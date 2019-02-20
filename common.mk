@@ -49,8 +49,7 @@ PRODUCT_PACKAGES += \
 
 # Shims
 PRODUCT_PACKAGES += \
-    libizat_core_shim \
-    libsec-ril_shim
+    libizat_core_shim
 
 # Radio
 PRODUCT_PACKAGES += \
