@@ -6,7 +6,7 @@ sys/bus/platform/drivers/sec-battery/battery.85/power_supply/battery(/.*)?			u:o
 /sys/devices/virtual/lcd/panel(/.*)?								u:object_r:sysfs_graphics:s0
 
 # LiveDisplay
-/(vendor|system/vendor)/bin/hw/vendor\.lineage\.livedisplay@2\.0-service\.samsung-qcom		u:object_r:hal_lineage_livedisplay_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor\.lineage\.livedisplay@2\.0-service\.samsung-qcom		u:object_r:hal_lineage_livedisplay_sysfs_exec:s0
 
 # mDNIe
 /sys/devices/virtual/mdnie/mdnie(/.*)?								u:object_r:sysfs_mdnie:s0
