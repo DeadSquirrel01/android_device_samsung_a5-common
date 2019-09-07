@@ -1,49 +1,58 @@
 # Battery
-/sys/devices/battery\.85/power_supply/battery(/.*)?				u:object_r:sysfs_batteryinfo:s0
-sys/bus/platform/drivers/sec-battery/battery.85/power_supply/battery(/.*)?	u:object_r:sysfs_batteryinfo:s0
+/sys/devices/battery\.85/power_supply/battery(/.*)?						u:object_r:sysfs_batteryinfo:s0
+sys/bus/platform/drivers/sec-battery/battery.85/power_supply/battery(/.*)?			u:object_r:sysfs_batteryinfo:s0
+
+# Graphics
+/sys/devices/virtual/lcd/panel(/.*)?								u:object_r:sysfs_graphics:s0
+
+# LiveDisplay
+/(vendor|system/vendor)/bin/hw/vendor\.lineage\.livedisplay@2\.0-service\.samsung-qcom		u:object_r:hal_lineage_livedisplay_default_exec:s0
+
+# mDNIe
+/sys/devices/virtual/mdnie/mdnie(/.*)?								u:object_r:sysfs_mdnie:s0
 
 # EFS
-/dev/block/platform/soc\.0/7824900\.sdhci/by-name/efs				u:object_r:modem_efs_partition_device:s0
+/dev/block/platform/soc\.0/7824900\.sdhci/by-name/efs						u:object_r:modem_efs_partition_device:s0
 
 # Misc
-/dev/block/platform/soc\.0/7824900\.sdhci/by-name/fota				u:object_r:misc_block_device:s0
+/dev/block/platform/soc\.0/7824900\.sdhci/by-name/fota						u:object_r:misc_block_device:s0
 
 # Bluetooth
-/efs/bluetooth(/.*)?								u:object_r:bluetooth_efs_file:s0
+/efs/bluetooth(/.*)?										u:object_r:bluetooth_efs_file:s0
 
-/efs/wifi(/.*)?									u:object_r:wifi_efs_file:s0
-/dev/sec-nfc									u:object_r:nfc_device:s0
-/dev/i2c-1									u:object_r:audio_device:s0
+/efs/wifi(/.*)?											u:object_r:wifi_efs_file:s0
+/dev/sec-nfc											u:object_r:nfc_device:s0
+/dev/i2c-1											u:object_r:audio_device:s0
 
 # Camera
-/sys/devices/virtual/camera(/.*)?						u:object_r:sysfs_camera:s0
-/data/cam_socket.*								u:object_r:camera_socket:s0
+/sys/devices/virtual/camera(/.*)?								u:object_r:sysfs_camera:s0
+/data/cam_socket.*										u:object_r:camera_socket:s0
 
 # Workaround for input
-/sys/devices/soc.0/i2c.78/i2c-11/11-0020/input/input1/enabled			u:object_r:sysfs_input:s0
-/sys/devices/soc.0/i2c.72/i2c-12/12-0048/input/input2/enabled			u:object_r:sysfs_input:s0
+/sys/devices/soc.0/i2c.78/i2c-11/11-0020/input/input1/enabled					u:object_r:sysfs_input:s0
+/sys/devices/soc.0/i2c.72/i2c-12/12-0048/input/input2/enabled					u:object_r:sysfs_input:s0
 
 # Tap to wake
-/sys/class/sec/sec_touchscreen/wake_gesture					u:object_r:tap2wake_dev:s0
-/sys/class/sec/sec_touchscreen/ts_control					u:object_r:tap2wake_dev:s0
+/sys/class/sec/sec_touchscreen/wake_gesture							u:object_r:tap2wake_dev:s0
+/sys/class/sec/sec_touchscreen/ts_control							u:object_r:tap2wake_dev:s0
 
 # Sensors
-/efs/prox_cal									u:object_r:sensors_efs_file:s0
+/efs/prox_cal											u:object_r:sensors_efs_file:s0
 
 # CMHW
-/sys/devices/virtual/timed_output/vibrator(/.*)?				u:object_r:sysfs_vibeamp:s0
+/sys/devices/virtual/timed_output/vibrator(/.*)?						u:object_r:sysfs_vibeamp:s0
 
 # time_daemon
-/system/bin/time_daemon								u:object_r:time_daemon_exec:s0
+/system/bin/time_daemon										u:object_r:time_daemon_exec:s0
 
 # loc_launcher
-/system/bin/loc_launcher							u:object_r:loc_launcher_exec:s0
+/system/bin/loc_launcher									u:object_r:loc_launcher_exec:s0
 
 # rmt_storage
-/system/bin/rmt_storage								u:object_r:rmt_storage_exec:s0
+/system/bin/rmt_storage										u:object_r:rmt_storage_exec:s0
 
 # qcamerasvr
-/system/bin/mm-qcamera-daemon							u:object_r:mm-qcamerad_exec:s0
+/system/bin/mm-qcamera-daemon									u:object_r:mm-qcamerad_exec:s0
 
 # qmuxd
-/system/bin/qmuxd								u:object_r:qmuxd_exec:s0
+/system/bin/qmuxd										u:object_r:qmuxd_exec:s0
