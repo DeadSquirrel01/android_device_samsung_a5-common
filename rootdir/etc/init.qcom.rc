@@ -462,8 +462,6 @@ on post-fs-data
     mkdir /data/vendor/wifi/wpa_supplicant 0770 wifi wifi
     mkdir /data/vendor/wifi/wpa 0770 wifi wifi
     mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
-    mkdir /data/misc/dhcp 0775 dhcp dhcp
-    chown dhcp dhcp /data/misc/dhcp
 
     # for WIFI MAC address
     mkdir /efs/wifi 0775 radio system
