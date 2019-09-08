@@ -71,7 +71,7 @@ ro.qualcomm.bluetooth.opp=true
 ro.qualcomm.bluetooth.pbap=true
 
 # NFC
-ro.nfc.sec_hal=true
+ro.nfc.fw_dl_on_boot=false
 
 # Misc.
 ro.chipname=MSM8916
