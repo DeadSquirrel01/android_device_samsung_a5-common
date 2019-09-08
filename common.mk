@@ -366,7 +366,8 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PROPERTY_OVERRIDES += \
     qcom.bluetooth.soc=smd \
-    ro.qualcomm.bt.hci_transport=smd
+    ro.qualcomm.bt.hci_transport=smd \
+    persist.bluetooth.bluetooth_audio_hal.disabled=true
 
 # WiFi
 PRODUCT_PACKAGES += \
