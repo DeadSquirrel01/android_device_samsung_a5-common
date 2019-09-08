@@ -416,9 +416,6 @@ on fs
     chmod 0666 /dev/i2c-1
     chown system system /dev/i2c-1
 
-# Start HW service manager early
-    start hwservicemanager
-
 on late-fs
     # Start services for bootanim
     start vendor.configstore-hal
