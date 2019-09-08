@@ -233,7 +233,8 @@ PRODUCT_PACKAGES += \
 # Filesystem
 PRODUCT_PACKAGES += \
     fsck.f2fs \
-    mkfs.f2fs
+    mkfs.f2fs \
+    fs_config_files
 
 # Live Wallpapers
 PRODUCT_PACKAGES += \
