@@ -7,3 +7,4 @@ allow mediaserver kernel:system module_request;
 allow mediaserver init:unix_dgram_socket sendto;
 allow mediaserver system_data_file:sock_file write;
 allow mediaserver device:dir { open read };
+allow mediaserver hal_lineage_camera_motor_hwservice:hwservice_manager find;

@@ -4,4 +4,6 @@ allow wcnss_service wifi_efs_file:file r_file_perms;
 allow wcnss_service exfat:file { read open getattr };
 allow wcnss_service exfat:dir search;
 allow wcnss_service serialno_prop:file { getattr open read };
-allow wcnss_service persist_file:dir { write add_name };
+allow wcnss_service persist_file:dir { search write add_name };
+allow wcnss_service persist_data_file:file { open read setattr write };
+allow wcnss_service persist_data_file:dir search;

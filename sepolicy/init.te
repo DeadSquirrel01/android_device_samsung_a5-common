@@ -21,3 +21,6 @@ allow init sysfs_thermal:file write;
 allow init sysfs_socinfo:file write;
 allow init system_data_file:chr_file getattr;
 allow init sysfs_net:file write;
+allow init fm_radio_device:chr_file ioctl;
+allow init sysfs_fm:file write;
+
