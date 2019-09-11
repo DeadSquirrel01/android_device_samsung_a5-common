@@ -43,7 +43,7 @@ PRODUCT_COPY_FILES += \
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.live_wallpaper.xml
 
 # DT
-PRODUCT_PACKAGES += \
+PRODUCT_HOST_PACKAGES += \
     dtbToolLineage
 
 # Touch issue workaround
