@@ -1,0 +1,3 @@
+allow kernel self:capability { chown dac_read_search };
+allow kernel exfat:dir search;
+

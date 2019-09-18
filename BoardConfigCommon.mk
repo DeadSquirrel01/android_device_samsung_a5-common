@@ -43,7 +43,7 @@ TARGET_LINUX_KERNEL_VERSION   := 3.10
 BOARD_CUSTOM_BOOTIMG          := true
 BOARD_CUSTOM_BOOTIMG_MK       := hardware/samsung/mkbootimg.mk
 BOARD_DTBTOOL_ARGS            := -2
-BOARD_KERNEL_CMDLINE          := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=enforcing
+BOARD_KERNEL_CMDLINE          := console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=permissive
 BOARD_KERNEL_BASE             := 0x80000000
 BOARD_RAMDISK_OFFSET          := 0x02000000
 BOARD_KERNEL_TAGS_OFFSET      := 0x01e00000
@@ -107,7 +107,7 @@ EXTENDED_FONT_FOOTPRINT          := true
 
 # Audio
 BOARD_USES_ALSA_AUDIO                := true
-USE_CUSTOM_AUDIO_POLICY              := 1
+USE_CUSTOM_AUDIO_POLICY              := 0
 BOARD_USES_GENERIC_AUDIO             := true
 TARGET_USES_QCOM_MM_AUDIO            := true
 USE_XML_AUDIO_POLICY_CONF            := 1
@@ -117,7 +117,7 @@ BOARD_CHARGER_SHOW_PERCENTAGE    := true
 BOARD_CHARGER_ENABLE_SUSPEND     := true
 
 # Enable QCOM FM feature
-BOARD_HAVE_QCOM_FM                  := true
+#BOARD_HAVE_QCOM_FM                  := true
 AUDIO_FEATURE_ENABLED_FM            := true
 AUDIO_FEATURE_ENABLED_FM_POWER_OPT  := true
 
@@ -200,10 +200,14 @@ TARGET_PROCESS_SDK_VERSION_OVERRIDE += \
     /system/vendor/bin/hw/rild=27
 
 # SELinux
-include device/qcom/sepolicy-legacy/sepolicy.mk
+#include device/qcom/sepolicy-legacy/sepolicy.mk
+SELINUX_IGNORE_NEVERALLOWS := true
+
+#BOARD_SEPOLICY_DIRS += \
+#    device/samsung/a5-common/sepolicy
 
 BOARD_SEPOLICY_DIRS += \
-    device/samsung/a5-common/sepolicy
+    device/samsung/a5-common/sepolicy-minimal
 
 # Misc.
 TARGET_SYSTEM_PROP := device/samsung/a5-common/system.prop

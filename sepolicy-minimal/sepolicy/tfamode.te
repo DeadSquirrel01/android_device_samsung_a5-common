@@ -1,0 +1,13 @@
+type tfamode, domain;
+type tfamode_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(tfamode)
+
+allow tfamode audio_device:dir search;
+allow tfamode audio_device:chr_file rw_file_perms;
+allow tfamode shell_exec:file rx_file_perms;
+allow tfamode system_file:file execute_no_trans;
+allow tfamode self:capability dac_override;
+
+allow tfamode i2c_device:chr_file { read write open };
+
+set_prop(tfamode, audio_prop)

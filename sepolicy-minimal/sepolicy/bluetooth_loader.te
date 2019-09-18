@@ -1,0 +1,4 @@
+allow bluetooth_loader persist_file:dir search;
+allow bluetooth_loader persist_file:file create_file_perms;
+
+get_prop(bluetooth_loader, wifi_prop)

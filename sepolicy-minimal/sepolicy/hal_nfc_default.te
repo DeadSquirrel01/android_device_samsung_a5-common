@@ -1,0 +1,1 @@
+allow hal_nfc_default unlabeled:file { getattr open read };

@@ -1,0 +1,14 @@
+binder_use(rild)
+
+allow rild proc_net:file w_file_perms;
+
+allow rild radio_data_file:dir rw_dir_perms;
+allow rild radio_data_file:file create_file_perms;
+allow rild system_data_file:lnk_file { getattr read };
+allow rild unlabeled:lnk_file { read getattr };
+allow rild net_radio_prop:property_service set;
+allow rild unlabeled:dir search;
+allow rild unlabeled:file { getattr open read };
+
+
+set_prop(rild, system_radio_prop)

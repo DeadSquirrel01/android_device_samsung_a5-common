@@ -1,0 +1,4 @@
+type firmware_file, file_type;
+type firmware-modem_file, file_type;
+type persist_file, file_type;
+type misc_file, file_type;

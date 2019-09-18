@@ -1,0 +1,1 @@
+allow surfaceflinger exfat:dir search;

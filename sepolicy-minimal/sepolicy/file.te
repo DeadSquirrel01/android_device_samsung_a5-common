@@ -1,0 +1,12 @@
+type wifi_efs_file, file_type;
+type sensors_efs_file, file_type;
+type sysfs_camera, fs_type, sysfs_type;
+type sysfs_input, fs_type, sysfs_type;
+type sysfs_vibeamp, fs_type, sysfs_type;
+type tap2wake_dev, fs_type, sysfs_type;
+type sysfs_sec_key, fs_type, sysfs_type;
+type sysfs_mdnie, fs_type, sysfs_type;
+type firmware_file, file_type;
+type firmware-modem_file, file_type;
+type persist_file, file_type;
+type misc_file, file_type;
