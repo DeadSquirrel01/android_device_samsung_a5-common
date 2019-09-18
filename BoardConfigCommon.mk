@@ -39,6 +39,7 @@ TARGET_CPU_CORTEX_A53       := true
 
 # Kernel
 TARGET_KERNEL_ARCH            := arm
+TARGET_LINUX_KERNEL_VERSION   := 3.10
 BOARD_CUSTOM_BOOTIMG          := true
 BOARD_CUSTOM_BOOTIMG_MK       := hardware/samsung/mkbootimg.mk
 BOARD_DTBTOOL_ARGS            := -2
