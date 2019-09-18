@@ -139,6 +139,7 @@ TARGET_USES_QCOM_WCNSS_QMI        := true
 WIFI_DRIVER_FW_PATH_STA           := "sta"
 WIFI_DRIVER_FW_PATH_AP            := "ap"
 WPA_SUPPLICANT_VERSION            := VER_0_8_X
+TARGET_DISABLE_WCNSS_CONFIG_COPY  := true
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH       := true
