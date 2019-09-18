@@ -75,6 +75,9 @@ BOARD_USERDATAIMAGE_PARTITION_SIZE  := 12775813120
 BOARD_FLASH_BLOCK_SIZE              := 131072
 TARGET_FS_CONFIG_GEN                := $(LOCAL_PATH)/config.fs
 
+# APEX image
+DEXPREOPT_GENERATE_APEX_IMAGE := true
+
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/a5-common/bluetooth
 BOARD_HAVE_BLUETOOTH                        := true
