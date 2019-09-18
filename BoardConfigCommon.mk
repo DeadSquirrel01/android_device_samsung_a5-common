@@ -75,6 +75,14 @@ BOARD_USERDATAIMAGE_PARTITION_SIZE  := 12775813120
 BOARD_FLASH_BLOCK_SIZE              := 131072
 TARGET_FS_CONFIG_GEN                := $(LOCAL_PATH)/config.fs
 
+# Root folders
+BOARD_ROOT_EXTRA_FOLDERS := \
+    firmware \
+    firmware-modem \
+    efs \
+    misc \
+    persist
+
 # APEX image
 DEXPREOPT_GENERATE_APEX_IMAGE := true
 
