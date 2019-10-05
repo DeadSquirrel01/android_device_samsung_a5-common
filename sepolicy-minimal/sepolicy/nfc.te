@@ -1,1 +1,0 @@
-allow nfc unlabeled:file { getattr open read };

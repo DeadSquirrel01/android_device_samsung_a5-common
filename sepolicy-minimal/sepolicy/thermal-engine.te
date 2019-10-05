@@ -1,3 +1,0 @@
-r_dir_file(thermal-engine, sysfs_spmi_dev)
-
-set_prop(thermal-engine, thermald_prop)

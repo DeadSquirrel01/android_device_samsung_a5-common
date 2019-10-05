@@ -1,3 +1,0 @@
-allow hal_power_default sysfs:file write;
-allow hal_power_default mpctl_socket:dir { search write };
-allow hal_power_default sysfs:file { open read write };

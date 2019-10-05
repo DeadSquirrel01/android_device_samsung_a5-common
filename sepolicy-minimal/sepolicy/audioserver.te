@@ -1,3 +1,0 @@
-allow audioserver system_file:file execmod;
-allow audioserver kernel:system module_request;
-allow audioserver sysfs:file { open read };

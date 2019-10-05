@@ -1,5 +1,0 @@
-allow hal_sensors_default sysfs:dir { open read write };
-allow hal_sensors_default sensors_data_file:file rw_file_perms;
-allow hal_sensors_default iio_device:chr_file r_file_perms;
-allow hal_sensors_default efs_file:dir search;
-allow hal_sensors_default sysfs:file { write open };

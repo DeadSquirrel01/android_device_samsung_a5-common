@@ -1,3 +1,0 @@
-allow hal_vibrator_default kernel:system module_request;
-allow hal_vibrator_default sysfs_vibeamp:dir { search write };
-allow hal_vibrator_default sysfs_vibeamp:file { open read write };
