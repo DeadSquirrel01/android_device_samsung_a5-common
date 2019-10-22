@@ -220,9 +220,6 @@ PRODUCT_PACKAGES += \
     libebtc
 
 PRODUCT_PACKAGES += \
-    init.qcom.bt.sh
-
-PRODUCT_PACKAGES += \
     fstab.qcom \
     init.qcom.rc \
     init.qcom.usb.rc \
@@ -230,7 +227,6 @@ PRODUCT_PACKAGES += \
     init.qcom.post_boot.sh \
     init.carrier.rc \
     init.class_main.sh \
-    init.qcom.bt.sh \
     init.qcom.uicc.sh \
     init.qcom.early_boot.sh \
     init.qcom.usb.sh \
