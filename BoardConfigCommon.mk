@@ -106,6 +106,7 @@ USE_DEVICE_SPECIFIC_GPS  := true
 EXTENDED_FONT_FOOTPRINT          := true
 
 # Audio
+AUDIO_FEATURE_ENABLED_SND_MONITOR    := true
 BOARD_USES_ALSA_AUDIO                := true
 USE_CUSTOM_AUDIO_POLICY              := 1
 BOARD_USES_GENERIC_AUDIO             := true
