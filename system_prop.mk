@@ -27,6 +27,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.sf.lcd_density=320 \
     debug.sf.gpu_comp_tiling=1 \
     debug.mdpcomp.idletime=600 \
+    debug.sf.enable_gl_backpressure=1 \
     persist.hwc.mdpcomp.enable=true \
     persist.hwc.ptor.enable=true \
     ro.opengles.version=196608 \
