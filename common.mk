@@ -379,7 +379,7 @@ PRODUCT_PACKAGES += \
     hostapd_cli \
     wificond \
     wifilogd \
-    android.hardware.wifi@1.0-service
+    android.hardware.wifi@1.0-service.legacy
 
 # WPA supplicant
 PRODUCT_PACKAGES += \
