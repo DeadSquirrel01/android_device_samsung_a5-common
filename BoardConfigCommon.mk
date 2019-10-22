@@ -205,9 +205,6 @@ include device/qcom/sepolicy-legacy/sepolicy.mk
 BOARD_SEPOLICY_DIRS += \
     device/samsung/a5-common/sepolicy
 
-# Misc.
-TARGET_SYSTEM_PROP := device/samsung/a5-common/system.prop
-
 # Display
 RECOVERY_GRAPHICS_USE_LINELENGTH  := true
 TARGET_RECOVERY_PIXEL_FORMAT      := "RGB_565"

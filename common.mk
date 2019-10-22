@@ -400,6 +400,9 @@ PRODUCT_COPY_FILES += \
 # We have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
+# System Properties
+$(call inherit-product, device/samsung/a5-common/system_prop.mk)
+
 # Common qcom
 $(call inherit-product, device/samsung/qcom-common/qcom-common.mk)
 
