@@ -352,5 +352,8 @@
          This should be turned off on low-end devices to improve animation performance. -->
     <bool name="config_supportsRoundedCornersOnWindows">false</bool>
 
+    <!-- True if the firmware supports Wi-Fi link probing -->
+    <bool name="config_wifi_link_probing_supported">true</bool>
+
 </resources>
 
