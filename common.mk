@@ -61,8 +61,6 @@ PRODUCT_PACKAGES += \
     libcurl \
     tcpdump \
     libkeyutils \
-    librmnetctl \
-    rmnetcli \
     libcnefeatureconfig \
     macloader
 
