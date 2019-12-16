@@ -122,10 +122,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     debug.camcorder.disablemeta=true
 
-# Vendor security patch
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.vendor.build.security_patch=2017-08-01
-
 # Memory optimizations
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.vendor.qti.am.reschedule_service=true

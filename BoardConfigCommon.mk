@@ -84,6 +84,9 @@ BOARD_ROOT_EXTRA_FOLDERS := \
     misc \
     persist
 
+# Security patch
+VENDOR_SECURITY_PATCH := 2017-08-01
+
 # APEX image
 DEXPREOPT_GENERATE_APEX_IMAGE := true
 
