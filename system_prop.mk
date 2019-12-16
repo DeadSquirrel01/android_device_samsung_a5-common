@@ -1,6 +1,6 @@
 # RIL
 PRODUCT_PROPERTY_OVERRIDES += \
-    rild.libpath=/system/lib/libsec-ril.so \
+    vendor.rild.libpath=/system/lib/libsec-ril.so \
     rild.libargs=-d /dev/smd0 \
     persist.radio.rat_on=combine \
     ril.subscription.types=NV,RUIM \
